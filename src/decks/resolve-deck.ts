@@ -52,16 +52,25 @@ export const findDefaultDeck = (decks: DeckRow[]): DeckRow | undefined =>
   decks.find((deck) => deck.is_default) ?? decks[0];
 
 /**
+ * Name the decks the user has, for a message that has to say what does exist.
+ *
+ * @param decks - The user's decks, from {@link fetchDecks}
+ * @returns The names in quotes, or "none yet" for an account with no decks
+ */
+export const listDeckNames = (decks: DeckRow[]): string =>
+  decks.map((deck) => `"${deck.name}"`).join(', ') || 'none yet';
+
+/**
  * Explain that a named deck does not exist, and list what does.
+ *
+ * Reason: the advice at the end is specific to acting on one deck, where
+ * omitting the name falls back to the default. A tool that reads across every
+ * deck writes its own ending.
  *
  * @param deckName - Name the caller asked for
  * @param decks - The user's decks, from {@link fetchDecks}
  * @returns A message written for the person on the other end
  */
-export const describeMissingDeck = (deckName: string, decks: DeckRow[]): string => {
-  const deckList = decks.map((deck) => `"${deck.name}"`).join(', ');
-  return (
-    `No deck named "${deckName}". Your decks: ${deckList || 'none yet'}. ` +
-    'Omit deckName to use the default deck.'
-  );
-};
+export const describeMissingDeck = (deckName: string, decks: DeckRow[]): string =>
+  `No deck named "${deckName}". Your decks: ${listDeckNames(decks)}. ` +
+  'Omit deckName to use the default deck.';

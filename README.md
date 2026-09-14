@@ -27,6 +27,7 @@ Step-by-step instructions for Claude, Cursor, ChatGPT, Gemini, VS Code and more 
 | Tool                        | What it does                                                   |
 | --------------------------- | -------------------------------------------------------------- |
 | `search_dictionary`         | Look a word or phrase up, public dictionary and your own cards |
+| `search_deck`               | Search the words you already have, across your decks or one    |
 | `add_card_to_deck`          | Put a card that already exists into one of your decks          |
 | `remove_card_from_deck`     | Take a card back out of your deck, keeping the card itself     |
 | `create_private_card`       | Build a complete flashcard for a word and file it in your deck |
@@ -41,6 +42,8 @@ Things people actually say:
 - "I keep seeing _runway_ in startup writing. Make me a card for that meaning, not the airport one."
 - "Make cards for every word I got wrong in that article."
 - "Is my _platitudinous_ card ready yet?"
+- "Do I already have _serendipity_ in my deck?"
+- "Have I got any _get_ phrasal verbs in my deck?"
 - "Take _banyan_ out of my deck, I know it now."
 - "My _moat_ card explains the wrong thing - redo it for the business sense."
 - "That picture on my _runway_ card is useless. Make the card again."
@@ -49,6 +52,10 @@ Things people actually say:
 
 Ask for a word and the AI looks it up first, adding the public dictionary's card when Inoh already
 has one and generating a fresh one only when it does not.
+
+`search_deck` looks through the words you hold rather than the ones you could add, so it answers
+"do I have this already?" without the dictionary's 45,000 entries drowning your own cards out. It
+forgives a typo the same way the app's search does, and it tells you which deck a word is in.
 
 ## Removing versus deleting
 
