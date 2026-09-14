@@ -5,10 +5,12 @@ export {
 } from './monthly-quota.js';
 export {
   CARD_REQUEST_COLUMNS,
-  describePrivateCardStatus,
-  toPrivateCardStatus,
+  describeCardRequestStatus,
+  toCardRequestStatus,
+  type CardRequestDestination,
+  type CardRequestProgress,
   type CardRequestRow,
-  type PrivateCardProgress,
-  type PrivateCardStatus,
+  type CardRequestStatus,
 } from './card-request-progress.js';
 export { buildDefaultContext, describeCardRequestInsertError } from './card-request-insert.js';
+export { cardContextSchema, cardWordSchema } from './card-request-input.js';

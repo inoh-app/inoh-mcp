@@ -96,7 +96,7 @@ export const registerDeletePrivateCardTool = (
         'monthly allowance and starts its review progress over. So confirm with the user ' +
         'before calling it, in terms of the card and the word ("that would delete your runway ' +
         'card for good — sure?"), never by naming a tool. Identify the card by `word`, or by ' +
-        '`cardId` from check_private_card_status. Two gentler things are usually what they ' +
+        '`cardId` from check_card_status. Two gentler things are usually what they ' +
         'actually want: remove_card_from_deck stops a card coming up in reviews but keeps it ' +
         'in their private dictionary, ready to add back; and update_private_card remakes a bad ' +
         'card in place, keeping its review progress. Only cards the user made can be deleted — ' +
@@ -112,7 +112,7 @@ export const registerDeletePrivateCardTool = (
           .string()
           .uuid()
           .optional()
-          .describe('The cardId from check_private_card_status. Use this or word.'),
+          .describe('The cardId from check_card_status. Use this or word.'),
       },
     },
     async ({ word, cardId }, extra) => {

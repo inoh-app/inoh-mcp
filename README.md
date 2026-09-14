@@ -24,17 +24,18 @@ Step-by-step instructions for Claude, Cursor, ChatGPT, Gemini, VS Code and more 
 
 ## What you can ask for
 
-| Tool                        | What it does                                                   |
-| --------------------------- | -------------------------------------------------------------- |
-| `search_dictionary`         | Look a word or phrase up, public dictionary and your own cards |
-| `search_deck`               | Search the words you already have, across your decks or one    |
-| `add_card_to_deck`          | Put a card that already exists into one of your decks          |
-| `remove_card_from_deck`     | Take a card back out of your deck, keeping the card itself     |
-| `create_private_card`       | Build a complete flashcard for a word and file it in your deck |
-| `update_private_card`       | Remake a card you made, keeping its review progress            |
-| `check_private_card_status` | Check whether a card you asked for is ready                    |
-| `delete_private_card`       | Destroy a card you made, for good                              |
-| `check_account`             | Show which Inoh account you are signed in as                   |
+| Tool                    | What it does                                                   |
+| ----------------------- | -------------------------------------------------------------- |
+| `search_dictionary`     | Look a word or phrase up, public dictionary and your own cards |
+| `search_deck`           | Search the words you already have, across your decks or one    |
+| `add_card_to_deck`      | Put a card that already exists into one of your decks          |
+| `remove_card_from_deck` | Take a card back out of your deck, keeping the card itself     |
+| `create_private_card`   | Build a complete flashcard for a word and file it in your deck |
+| `update_private_card`   | Remake a card you made, keeping its review progress            |
+| `request_public_card`   | Ask for a word to be added to the dictionary everyone shares   |
+| `check_card_status`     | Check where a card or a request you made has got to            |
+| `delete_private_card`   | Destroy a card you made, for good                              |
+| `check_account`         | Show which Inoh account you are signed in as                   |
 
 Things people actually say:
 
@@ -49,6 +50,8 @@ Things people actually say:
 - "That picture on my _runway_ card is useless. Make the card again."
 - "Delete the _moat_ card I made earlier."
 - "Put the _banyan_ card back in my deck."
+- "Inoh hasn't got _enshittification_. Can you get it added for everyone?"
+- "Did that word I suggested ever make it into the dictionary?"
 
 Ask for a word and the AI looks it up first, adding the public dictionary's card when Inoh already
 has one and generating a fresh one only when it does not.
@@ -120,6 +123,38 @@ Deleting a card removes it completely: the card, its place in your deck, and its
 files. It does not give back the monthly allowance it used. Removing one of your own cards from a
 deck inside the Inoh app also deletes it, a few minutes later, once the undo window has passed.
 
+## Contributing to the public dictionary
+
+Everything above is about your own cards. The public dictionary — the 45,000 entries every Inoh
+user shares — is the other half, and you can add to it. Say the dictionary ought to have a word
+and the AI sends it in for you, with the sense you described.
+
+What happens then is different from making your own card in one important way: **a person at Inoh
+reads it before anything is published.** Inoh builds the card as usual, then it waits for a
+reviewer, so this takes days rather than a minute, and it can be turned down. If it is published,
+the card belongs to everyone who uses Inoh — and it is added to your deck too, so you are not
+waiting on your own suggestion to study the word.
+
+It costs nothing. Requests are unlimited on every plan and spend none of your monthly private-card
+allowance, so suggesting a word never uses up a card you might want for yourself. (One ceiling
+does apply: 100 requests a day across everything you ask Inoh to make, which exists to stop a
+runaway script rather than you.)
+
+**Which one to ask for:**
+
+| You want                      | Ask for            | You get it                     |
+| ----------------------------- | ------------------ | ------------------------------ |
+| The word in your deck today   | A card of your own | In about a minute, guaranteed  |
+| The word in Inoh for everyone | A request          | In a few days, if it is agreed |
+
+Nothing stops you doing both — make yourself a card now, and suggest the word as well. If the
+dictionary already has the word there is nothing to contribute, and the AI will offer you the
+existing card instead; say you mean a different sense and it can send the request anyway.
+
+Ask "where did my suggestion get to?" and `check_card_status` answers for both kinds at once: your
+own cards read as ready, a suggestion reads as with a reviewer, published, or declined. The app's
+My Requests screen shows the same list.
+
 ## Privacy and data handling
 
 - **The server stores nothing of its own.** It acts on your Inoh account using your access token,
@@ -131,6 +166,9 @@ deck inside the Inoh app also deletes it, a few minutes later, once the undo win
 - **Creating a card sends the word and the sense you described to Inoh's card pipeline**, which uses
   OpenAI for the text, Google Cloud for the speech, and Google Gemini for the image. Nothing else
   about you is sent.
+- **A word you suggest for the public dictionary is read by a person at Inoh**, along with the sense
+  you wrote, because that is what reviewing it means. The published entry carries no trace of who
+  asked for it.
 - **Your cards stay yours.** Deleting a card deletes the underlying media too, unless another card
   legitimately shares the same file.
 - **You can revoke access at any time** from your Inoh account, and nothing here survives it.

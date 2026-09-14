@@ -5,16 +5,15 @@ import { getAuthenticatedUser, getUserAccessToken } from '../auth/index.js';
 import { MAX_WORD_LENGTH } from '../constants.js';
 import {
   buildDefaultContext,
+  cardContextSchema,
   describeCardRequestInsertError,
   describeLowAllowance,
   fetchPrivateCardQuota,
-} from '../private-cards/index.js';
+} from '../card-requests/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
 import { buildCardChoiceQuestion, requireOneCardSelector } from './card-selection.js';
 import { lookupOwnCard, type OwnCardLookup } from './own-card-lookup.js';
 import { buildToolError } from './tool-result.js';
-
-const MAX_CONTEXT_LENGTH = 300;
 
 /**
  * Say why no card could be redone, and what to do about it.
@@ -102,7 +101,7 @@ export const registerUpdatePrivateCardTool = (
         'card by `word` or by `cardId`. This only works on cards the user made: a card from ' +
         'the shared Inoh dictionary belongs to everyone. To teach a different word, delete ' +
         'this card and create one for that word instead. Takes about a minute and finishes in ' +
-        'the background; call check_private_card_status to check on it. Counts as one card ' +
+        'the background; call check_card_status to check on it. Counts as one card ' +
         "against the user's monthly allowance, because it generates a new image.",
       inputSchema: {
         word: z
@@ -116,19 +115,13 @@ export const registerUpdatePrivateCardTool = (
           .string()
           .uuid()
           .optional()
-          .describe('The cardId from check_private_card_status. Use this or word.'),
-        context: z
-          .string()
-          .trim()
-          .min(1)
-          .max(MAX_CONTEXT_LENGTH)
-          .optional()
-          .describe(
-            'Which sense the card should teach this time, e.g. "months of cash a startup ' +
-              'has left, not the airport kind". Omit to remake the card from the sense it ' +
-              'already had, which is what to do when the sense was right but the wording, ' +
-              'sentence or image was not.',
-          ),
+          .describe('The cardId from check_card_status. Use this or word.'),
+        context: cardContextSchema.describe(
+          'Which sense the card should teach this time, e.g. "months of cash a startup ' +
+            'has left, not the airport kind". Omit to remake the card from the sense it ' +
+            'already had, which is what to do when the sense was right but the wording, ' +
+            'sentence or image was not.',
+        ),
       },
     },
     async ({ word, cardId, context }, extra) => {
@@ -167,7 +160,7 @@ export const registerUpdatePrivateCardTool = (
       if (error) {
         const explanation = describeCardRequestInsertError(
           error,
-          `"${card.word}" is already being remade. Call check_private_card_status to see how ` +
+          `"${card.word}" is already being remade. Call check_card_status to see how ` +
             'it is going, and wait for it to finish before asking for another.',
         );
         if (explanation !== null) {
@@ -198,7 +191,7 @@ export const registerUpdatePrivateCardTool = (
                 null,
                 2,
               )}\n\n` +
-              'Call check_private_card_status with this requestId to check whether it is ready.' +
+              'Call check_card_status with this requestId to check whether it is ready.' +
               `${lowAllowanceNote === null ? '' : `\n\n${lowAllowanceNote}`}`,
           },
         ],
