@@ -65,7 +65,8 @@ export const registerSearchDictionaryTool = (
         "that card in the user's deck. Both dictionaries are searched: the public Inoh " +
         "dictionary, and the user's own private dictionary — their cards come back with " +
         '`isPrivate: true`, so describe one as a card they made rather than as an Inoh entry, ' +
-        'and remember only those can be deleted or remade.',
+        'and remember only those can be deleted or remade. This searches everything they could ' +
+        'add; search_deck is what says whether they already hold a word.',
       inputSchema: {
         query: z
           .string()
