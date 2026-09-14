@@ -1,58 +1,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-/**
- * Private cards a plan may create per calendar month.
- *
- * Reason: mirrors enforce_monthly_private_card_limit in inoh-backend, which is
- * the authoritative gate — these numbers exist only so a tool can tell the user
- * where they stand before they hit it. Keep the two in sync.
- */
-export const PRIVATE_CARD_MONTHLY_LIMITS = {
-  free: 50,
-  plus: 300,
-  pro: 1000,
-} as const;
-
-export type SubscriptionPlan = keyof typeof PRIVATE_CARD_MONTHLY_LIMITS;
-
 export interface PrivateCardQuota {
-  plan: SubscriptionPlan;
+  /** The plan the allowance came from: free, plus or pro. */
+  plan: string;
   used: number;
   limit: number;
   remaining: number;
 }
 
-const ENTITLED_STATUSES = ['active', 'trialing'];
+/** Shape `private_card_quota` returns. */
+interface PrivateCardQuotaRow {
+  plan: string;
+  used: number;
+  monthly_limit: number;
+  remaining: number;
+}
 
-/**
- * Start of the current UTC calendar month, matching the window the database
- * trigger counts over.
- */
-const _startOfCurrentMonth = (): string => {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
-};
-
-/**
- * Mirror of get_entitled_plan: a paid plan counts only while the subscription
- * is active or trialing, and anything else falls closed to free.
- */
-const _readEntitledPlan = async (supabase: SupabaseClient): Promise<SubscriptionPlan> => {
-  const { data, error } = await supabase.from('subscriptions').select('plan, status').maybeSingle();
-
-  if (error || data === null) {
-    // Reason: RLS scopes this to the caller's own row, so the only realistic
-    // failures are "no subscription yet" and a transient error. Both mean we
-    // should quote the free allowance rather than refuse to answer.
-    return 'free';
-  }
-
-  const isEntitled =
-    ENTITLED_STATUSES.includes(data.status as string) &&
-    (data.plan === 'plus' || data.plan === 'pro');
-
-  return isEntitled ? (data.plan as SubscriptionPlan) : 'free';
-};
+/** What to say when the allowance cannot be read at all. */
+const UNKNOWN_QUOTA: PrivateCardQuota = { plan: 'free', used: 0, limit: 50, remaining: 50 };
 
 /**
  * How few cards left before the allowance is worth raising unprompted.
@@ -84,25 +49,33 @@ export const describeLowAllowance = (quota: PrivateCardQuota): string | null =>
 /**
  * How many private cards the signed-in user has left this month.
  *
+ * Reason: asks the database rather than counting here. The plan ladder and the
+ * window belong to `enforce_monthly_private_card_limit`, which is the gate that
+ * actually refuses a card, and this used to be a hand-kept copy of both. Drafts
+ * are the case that made the copy untenable: they are rows the user has not
+ * asked for yet, so counting them here would have quoted an allowance smaller
+ * than the one being enforced.
+ *
  * @param supabase - Client acting as the signed-in user
  * @returns Their plan, what they have used, and what is left
  */
 export const fetchPrivateCardQuota = async (
   supabase: SupabaseClient,
 ): Promise<PrivateCardQuota> => {
-  const plan = await _readEntitledPlan(supabase);
+  const { data, error } = await supabase.rpc('private_card_quota').maybeSingle();
 
-  // Reason: counts the same rows the trigger counts — custom requests made this
-  // month that did not end up failed or rejected, since those free their slot.
-  const { count } = await supabase
-    .from('card_requests')
-    .select('id', { count: 'exact', head: true })
-    .eq('destination', 'private')
-    .not('status', 'in', '("failed","rejected")')
-    .gte('created_at', _startOfCurrentMonth());
+  if (error || data === null) {
+    // Reason: quoting the free allowance beats refusing to answer. The number
+    // is only ever used to decide whether to mention the allowance at all, and
+    // the database refuses the card regardless of what is said here.
+    return UNKNOWN_QUOTA;
+  }
 
-  const used = count ?? 0;
-  const limit = PRIVATE_CARD_MONTHLY_LIMITS[plan];
-
-  return { plan, used, limit, remaining: Math.max(limit - used, 0) };
+  const row = data as PrivateCardQuotaRow;
+  return {
+    plan: row.plan,
+    used: row.used,
+    limit: row.monthly_limit,
+    remaining: row.remaining,
+  };
 };
