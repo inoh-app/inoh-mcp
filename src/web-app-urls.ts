@@ -13,3 +13,6 @@ export const buildWordPageUrl = (dictionaryId: string): string =>
 
 /** Where a user watches the cards they have asked for, queued ones first. */
 export const MY_REQUESTS_URL = `${INOH_WEB_APP_URL}/my-requests`;
+
+/** Where a user lifts the month's private card allowance. */
+export const PLANS_URL = `${INOH_WEB_APP_URL}/subscription-plan`;
