@@ -1,4 +1,5 @@
 import type { PostgrestError } from '@supabase/supabase-js';
+import { PLANS_URL } from '../web-app-urls.js';
 
 /**
  * Sense hint stored when the caller does not give one.
@@ -18,6 +19,16 @@ const POSTGRES_UNIQUE_VIOLATION = '23505';
 const QUOTA_ERROR_PREFIX = 'PRIVATE_CARD_LIMIT:';
 const DAILY_CEILING_ERROR_PREFIX = 'DAILY_CARD_REQUEST_LIMIT:';
 const CLIENT_WRITE_ERROR_PREFIX = 'CARD_REQUEST_CLIENT_WRITE:';
+
+/**
+ * The word the database's own refusal uses when a bigger plan exists.
+ *
+ * Reason: the Free and Plus refusals say "Upgrade to Plus for 300 or Pro for
+ * 1,000"; the Pro one says when the allowance resets instead, because there is
+ * nothing above it. Keying off the offer keeps this from selling Pro a plan
+ * the database just told them they already have.
+ */
+const UPGRADE_OFFER_MARKER = 'Upgrade';
 
 /** Take the human half of a prefixed database message. */
 const _readMessageAfterPrefix = (message: string, prefix: string): string =>
@@ -48,7 +59,12 @@ export const describeCardRequestInsertError = (
   // Reason: both limit triggers raise messages written for the user, so pass
   // them through rather than restating them worse.
   if (error.message.includes(QUOTA_ERROR_PREFIX)) {
-    return _readMessageAfterPrefix(error.message, QUOTA_ERROR_PREFIX);
+    const refusal = _readMessageAfterPrefix(error.message, QUOTA_ERROR_PREFIX);
+
+    // Reason: the refusal says to upgrade but not where, and a tool result is
+    // the prompt for whatever the client says next — without the link the
+    // assistant either invents one or sends the user hunting for it.
+    return refusal.includes(UPGRADE_OFFER_MARKER) ? `${refusal} Upgrade at ${PLANS_URL}.` : refusal;
   }
 
   if (error.message.includes(DAILY_CEILING_ERROR_PREFIX)) {
