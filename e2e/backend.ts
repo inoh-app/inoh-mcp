@@ -130,12 +130,15 @@ export const resetAccount = (options: {
   plan?: Plan;
   profile?: SeedProfile;
   privateCards?: number;
+  /** Private cards already asked for this month, against the allowance. */
+  spentPrivateCards?: number;
 }): SeededAccount =>
   _runFixtureCommand<SeededAccount>('reset-user', {
     email: options.email,
     plan: options.plan ?? 'free',
     profile: options.profile ?? 'learner',
     ..._buildOptionalFlag('private-cards', options.privateCards),
+    ..._buildOptionalFlag('spent-private-cards', options.spentPrivateCards),
   });
 
 /**

@@ -82,6 +82,9 @@ beforeAll(async () => {
 afterAll(async () => {
   await connection?.close();
   await server?.close();
+  // Reason: the specs asked for real cards, which sit as pending requests — a
+  // job for any card generator that happens to be running. Leave none behind.
+  resetAccount({ email: TEST_ACCOUNT_EMAIL, profile: 'empty' });
 });
 
 describe('asking for a private card', () => {
