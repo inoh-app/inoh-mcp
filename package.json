@@ -19,7 +19,11 @@
     "lint": "eslint .",
     "lint:strict": "eslint . --max-warnings 0",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e:fixture": "deno run --allow-env --allow-net ${INOH_BACKEND_DIR:-../inoh-backend}/supabase/e2e/cli.ts",
+    "e2e:doctor": "pnpm e2e:fixture doctor",
+    "e2e:test": "vitest run --config e2e/vitest.config.ts",
+    "e2e:run": "pnpm e2e:doctor && pnpm e2e:test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
@@ -39,6 +43,7 @@
     "eslint-plugin-prettier": "^5.5.6",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   }
 }
