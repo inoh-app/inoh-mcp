@@ -199,7 +199,9 @@ export const registerCreatePrivateCardTool = (
                 null,
                 2,
               )}\n\n` +
-              'Call check_card_status with this requestId to check whether it is ready.' +
+              'Nothing is blocked while it builds, so carry on with whatever the user asks ' +
+              'next rather than waiting on it. Call check_card_status with this requestId ' +
+              'when they want to know whether it is ready.' +
               `${lowAllowanceNote === null ? '' : `\n\n${lowAllowanceNote}`}`,
           },
         ],
