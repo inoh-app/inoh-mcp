@@ -1,4 +1,4 @@
-import { INOH_WEB_APP_URL } from './constants.js';
+import { WEB_APP_URL } from './web-app-urls.js';
 
 /**
  * Runtime configuration read from environment variables.
@@ -50,10 +50,11 @@ const _readOptionalEnv = (name: string): string | undefined => {
  * Parses the comma-separated `ALLOWED_ORIGINS` list.
  *
  * Defaults to the Inoh web app alone, so an unrecognised browser client is
- * refused until it is added deliberately rather than allowed by omission.
+ * refused until it is added deliberately rather than allowed by omission. That
+ * default follows `WEB_APP_URL`, so a local run allows the local app's origin.
  */
 const _parseAllowedOrigins = (rawValue: string | undefined): string[] => {
-  if (rawValue === undefined) return [INOH_WEB_APP_URL];
+  if (rawValue === undefined) return [WEB_APP_URL];
 
   return rawValue
     .split(',')

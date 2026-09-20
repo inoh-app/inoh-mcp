@@ -11,8 +11,11 @@ export const HEALTH_PATH = '/health';
  * Its own host since PRI-20768: inoh.app serves the marketing site and the
  * public dictionary pages, app.inoh.app serves the app. The old host still
  * 308s every app path here, so an older client keeps working.
+ *
+ * A default rather than a fixed value: `WEB_APP_URL` overrides it, so a server
+ * run against local Supabase links to the local app. See web-app-urls.ts.
  */
-export const INOH_WEB_APP_URL = 'https://app.inoh.app';
+export const DEFAULT_WEB_APP_URL = 'https://app.inoh.app';
 
 /**
  * Longest word or phrase the tools accept.
