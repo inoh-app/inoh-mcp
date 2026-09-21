@@ -8,43 +8,10 @@ import {
   findDeckByName,
   listDeckNames,
   searchDeckCards,
-  type DeckCard,
-  type DeckRow,
 } from '../decks/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
-import { buildWordPageUrl } from '../web-app-urls.js';
+import { toDeckCardResult } from './deck-card-result.js';
 import { buildToolError } from './tool-result.js';
-
-interface DeckSearchResult {
-  /** The card's dictionary id, which every other card tool takes. */
-  cardId: string;
-  word: string;
-  definition: string;
-  /** Which of the user's decks holds it. */
-  deckName: string;
-  /** True when this is a card the user made rather than a public dictionary entry. */
-  isPrivate: boolean;
-  /** Word page in the Inoh web app, so clients can link to the full card. */
-  url: string;
-}
-
-/**
- * Name the deck a card sits in.
- *
- * The fallback cannot normally happen: both the decks and the cards come from
- * the same account under RLS. It costs the user nothing if it ever does.
- */
-const _nameDeck = (decks: DeckRow[], deckId: string): string =>
-  decks.find((deck) => deck.id === deckId)?.name ?? 'their deck';
-
-const _toSearchResult = (card: DeckCard, decks: DeckRow[]): DeckSearchResult => ({
-  cardId: card.id,
-  word: card.word,
-  definition: card.definition,
-  deckName: _nameDeck(decks, card.deckId),
-  isPrivate: card.owner_user_id !== null,
-  url: buildWordPageUrl(card.id),
-});
 
 /**
  * Registers a `search_deck` tool that searches the cards the signed-in user
@@ -69,7 +36,9 @@ export const registerSearchDeckTool = (server: McpServer, connection: SupabaseCo
         'and `isPrivate` — true for a card the user made, so describe it as theirs rather than ' +
         'as an Inoh entry, and remember only those can be deleted or remade. Pass a cardId to ' +
         'remove_card_from_deck or update_private_card to act on one. This searches only what ' +
-        'they hold: search_dictionary is what finds words they could add.',
+        'they hold: search_dictionary is what finds words they could add, and browse_deck ' +
+        'lists their cards without a search term — a random handful, the newest, or the ' +
+        'ones due for review.',
       inputSchema: {
         query: z
           .string()
@@ -98,7 +67,7 @@ export const registerSearchDeckTool = (server: McpServer, connection: SupabaseCo
       }
 
       const matches = await searchDeckCards(supabase, query, chosenDeck?.id);
-      const results = matches.map((card) => _toSearchResult(card, decks));
+      const results = matches.map((card) => toDeckCardResult(card, decks));
       const searchedLabel =
         chosenDeck === undefined ? 'any of their decks' : `their "${chosenDeck.name}" deck`;
 

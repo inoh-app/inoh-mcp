@@ -1,23 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {
-  allowedEditDistance,
-  measureEditDistance,
-  type DictionaryCard,
-} from '../dictionary/index.js';
-
-/** A card the user holds, and the deck it sits in. */
-export interface DeckCard extends DictionaryCard {
-  deckId: string;
-}
-
-/**
- * The deck row with its dictionary entry attached.
- *
- * `!inner` is what makes the word filter narrow the deck rows themselves; a
- * plain embed would return every card in the deck with the entry blanked out
- * on the ones that do not match.
- */
-const DECK_CARD_COLUMNS = 'deck_id, dictionary!inner(id, word, definition, owner_user_id)';
+import { allowedEditDistance, measureEditDistance } from '../dictionary/index.js';
+import { DECK_CARD_COLUMNS, toDeckCards, type DeckCard } from './deck-card.js';
 
 /**
  * How many matches come back, mirroring `search_dictionary_words` so a search
@@ -30,21 +13,6 @@ const TYPO_CANDIDATE_LIMIT = 50;
 
 /** How much of the query a candidate has to start with to be considered a typo of it. */
 const TYPO_PREFIX_LENGTH = 4;
-
-interface DeckCardRow {
-  deck_id: string;
-  dictionary: {
-    id: string;
-    word: string;
-    definition: string;
-    owner_user_id: string | null;
-  };
-}
-
-const _toDeckCard = (row: DeckCardRow): DeckCard => ({
-  ...row.dictionary,
-  deckId: row.deck_id,
-});
 
 /** Escapes the characters LIKE reads as wildcards, so a query matches itself. */
 const _escapeLikeWildcards = (text: string): string =>
@@ -93,7 +61,7 @@ const _fetchDeckCardsMatching = async (
     throw new Error(`Could not search the user's deck: ${error.message}`);
   }
 
-  return ((data ?? []) as unknown as DeckCardRow[]).map(_toDeckCard);
+  return toDeckCards(data);
 };
 
 /** Puts an exact match first, leaving the alphabetical order otherwise intact. */

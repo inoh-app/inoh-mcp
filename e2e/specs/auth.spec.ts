@@ -108,6 +108,7 @@ describe('a client signed in with an emailed code', () => {
       expect(tools.map((tool) => tool.name).sort()).toEqual(
         [
           'add_card_to_deck',
+          'browse_deck',
           'check_account',
           'check_card_status',
           'create_private_card',

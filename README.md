@@ -28,6 +28,7 @@ Step-by-step instructions for Claude, Cursor, ChatGPT, Gemini, VS Code and more 
 | ----------------------- | -------------------------------------------------------------- |
 | `search_dictionary`     | Look a word or phrase up, public dictionary and your own cards |
 | `search_deck`           | Search the words you already have, across your decks or one    |
+| `browse_deck`           | Pull words out of your deck with no search term at all         |
 | `add_card_to_deck`      | Put a card that already exists into one of your decks          |
 | `remove_card_from_deck` | Take a card back out of your deck, keeping the card itself     |
 | `create_private_card`   | Build a complete flashcard for a word and file it in your deck |
@@ -44,6 +45,10 @@ Things people actually say:
 - "Make cards for every word I got wrong in that article."
 - "Is my _platitudinous_ card ready yet?"
 - "Do I already have _serendipity_ in my deck?"
+- "Give me ten random words from my deck."
+- "What have I added to my deck lately?"
+- "What should I review today?"
+- "Which words do I keep forgetting?"
 - "Have I got any _get_ phrasal verbs in my deck?"
 - "Take _banyan_ out of my deck, I know it now."
 - "My _moat_ card explains the wrong thing - redo it for the business sense."
@@ -59,6 +64,12 @@ has one and generating a fresh one only when it does not.
 `search_deck` looks through the words you hold rather than the ones you could add, so it answers
 "do I have this already?" without the dictionary's 45,000 entries drowning your own cards out. It
 forgives a typo the same way the app's search does, and it tells you which deck a word is in.
+
+`browse_deck` is the one to reach for when there is no word to search for. Ask for a random
+handful and you get a different draw every time; ask for the newest or the oldest and you get
+them in the order you added them; ask what is due and you get what the app would put in front of
+you next, most overdue first; ask what you keep forgetting and you get the cards you have missed
+in review, the worst first. Reading your deck this way never touches a card's review schedule.
 
 ## Removing versus deleting
 
