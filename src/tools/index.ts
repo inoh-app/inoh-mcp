@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SupabaseConnection } from '../supabase/index.js';
 import { registerAddCardToDeckTool } from './add-card-to-deck.js';
+import { registerBrowseDeckTool } from './browse-deck.js';
 import { registerCheckAccountTool } from './check-account.js';
 import { registerCheckCardStatusTool } from './check-card-status.js';
 import { registerCreatePrivateCardTool } from './create-private-card.js';
@@ -24,6 +25,7 @@ export const registerAllTools = (server: McpServer, connection: SupabaseConnecti
   registerCheckAccountTool(server);
   registerSearchDictionaryTool(server, connection);
   registerSearchDeckTool(server, connection);
+  registerBrowseDeckTool(server, connection);
   registerAddCardToDeckTool(server, connection);
   registerRemoveCardFromDeckTool(server, connection);
   registerCreatePrivateCardTool(server, connection);
