@@ -46,6 +46,17 @@ interface DictionaryMatch {
   isPrivate: boolean;
 }
 
+/**
+ * A word the seeded public dictionary carries, and two senses of it.
+ *
+ * The two meanings of "battery" are nothing like each other, so one word
+ * exercises the duplicate check in both directions: the sense the dictionary
+ * holds has to be caught, and the other one has to go straight through.
+ */
+const SEEDED_WORD = 'battery';
+const SEEDED_WORD_MATCHING_DEFINITION = 'Device that stores and provides electrical energy';
+const SEEDED_WORD_UNRELATED_DEFINITION = 'the crime of unlawfully hitting another person';
+
 /** A word no dictionary has, so a request for it is never a duplicate. */
 const freshWord = (): string => `mcp e2e ${Date.now().toString(36)}`;
 
@@ -132,6 +143,32 @@ describe('asking for a private card', () => {
     expect(jsonOf<RequestReceipt>(result).word).toBe(publicWord);
   });
 
+  it('catches the sense the dictionary already teaches', async () => {
+    const before = await readQuota();
+    const result = await connection.callTool('create_private_card', {
+      word: SEEDED_WORD,
+      context: SEEDED_WORD_MATCHING_DEFINITION,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`already has a card for "${SEEDED_WORD}"`);
+    expect((await readQuota()).used).toBe(before.used);
+  });
+
+  it('lets a genuinely different sense of the same word through', async () => {
+    // No createAnyway. The check compares what the card teaches rather than
+    // how the word is spelled, so a sense the dictionary does not cover is
+    // not a duplicate and should never have to be insisted on. Matching on
+    // the word alone, which is what this used to do, refused it.
+    const result = await connection.callTool('create_private_card', {
+      word: SEEDED_WORD,
+      context: SEEDED_WORD_UNRELATED_DEFINITION,
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(jsonOf<RequestReceipt>(result).word).toBe(SEEDED_WORD);
+  });
+
   it('refuses a word Inoh cannot make a card for', async () => {
     const before = await readQuota();
     for (const word of ['日本語', 'a'.repeat(51)]) {
@@ -190,6 +227,28 @@ describe('suggesting a public word', () => {
       }),
     );
     expect(status).toMatchObject({ word, destination: 'public' });
+  });
+
+  it('catches the sense the dictionary already teaches', async () => {
+    const result = await connection.callTool('request_public_card', {
+      word: SEEDED_WORD,
+      context: SEEDED_WORD_MATCHING_DEFINITION,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`already has a card for "${SEEDED_WORD}"`);
+  });
+
+  it('lets a genuinely different sense of the same word through', async () => {
+    // The whole point of suggesting a word Inoh already carries: the shared
+    // dictionary is missing every sense of it but the one.
+    const result = await connection.callTool('request_public_card', {
+      word: SEEDED_WORD,
+      context: SEEDED_WORD_UNRELATED_DEFINITION,
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(textOf(result)).toContain(`Suggested "${SEEDED_WORD}"`);
   });
 });
 

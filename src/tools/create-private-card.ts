@@ -10,7 +10,7 @@ import {
   fetchPrivateCardQuota,
 } from '../card-requests/index.js';
 import { describeMissingDeck, fetchDecks, findDeckByName } from '../decks/index.js';
-import { findCardsByWord, type DictionaryCard } from '../dictionary/index.js';
+import { findExistingCards, type DictionaryCard } from '../dictionary/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
 import { MY_REQUESTS_URL } from '../web-app-urls.js';
 import { formatCardChoices } from './card-selection.js';
@@ -120,9 +120,11 @@ export const registerCreatePrivateCardTool = (
           .boolean()
           .optional()
           .describe(
-            'Set true to generate a card even though Inoh already has one for this word. Only ' +
-              'do this when the user wants a sense the existing cards do not cover, and say ' +
-              'which sense in `context`.',
+            'Set true to generate a card even though Inoh already has this sense. Rarely ' +
+              'needed for a public entry: that half of the check compares meanings, not ' +
+              'spellings, so a sense the dictionary does not cover goes through without it. ' +
+              "The user's own cards are matched on the word, so a second sense of one of " +
+              'those does need it.',
           ),
       },
     },
@@ -135,7 +137,8 @@ export const registerCreatePrivateCardTool = (
         // A private card sitting outside every deck is still theirs, still in
         // their private dictionary, and still what they should be offered
         // rather than a second copy bought with the monthly allowance.
-        const existingCards = await findCardsByWord(supabase, word);
+        const { publicCards, ownCards } = await findExistingCards(supabase, word, context);
+        const existingCards = [...publicCards, ...ownCards];
         if (existingCards.length > 0) {
           return buildToolError(_describeExistingCards(word, existingCards));
         }

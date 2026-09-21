@@ -7,7 +7,7 @@ import {
   cardWordSchema,
   describeCardRequestInsertError,
 } from '../card-requests/index.js';
-import { findCardsByWord, type DictionaryCard } from '../dictionary/index.js';
+import { findExistingCards, type DictionaryCard } from '../dictionary/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
 import { MY_REQUESTS_URL } from '../web-app-urls.js';
 import { formatCardChoices } from './card-selection.js';
@@ -70,17 +70,18 @@ export const registerRequestPublicCardTool = (
         context: cardContextSchema.describe(
           'Which sense of the word the entry should teach, e.g. "a platform getting worse as ' +
             'it squeezes its users for profit". Strongly recommended: it is what the reviewer ' +
-            'judges the card against, and what tells a second sense of a word Inoh already ' +
-            "has from a duplicate. May be in any language — no need to translate the user's " +
-            'own words.',
+            'judges the card against, and it is what the duplicate check compares, so giving ' +
+            'it is what lets a second sense of a word Inoh already has through. Without it ' +
+            'the check falls back to matching the word alone. May be in any language — no ' +
+            "need to translate the user's own words.",
         ),
         requestAnyway: z
           .boolean()
           .optional()
           .describe(
-            'Set true to suggest a word the public dictionary already has an entry for. Only ' +
-              'do this when the user means a sense those entries do not cover, and say which ' +
-              'sense in `context`.',
+            'Set true to suggest a word the public dictionary already has this sense of. ' +
+              'Rarely needed: the check compares meanings, not spellings, so a sense the ' +
+              'dictionary does not cover already goes through without it.',
           ),
       },
     },
@@ -93,9 +94,11 @@ export const registerRequestPublicCardTool = (
         // stop. A private card the user made for the word is theirs alone —
         // nobody else can see it, so the word is still missing from the
         // dictionary and still worth suggesting.
-        const publicCards = (await findCardsByWord(supabase, word)).filter(
-          (card) => card.owner_user_id === null,
-        );
+        //
+        // Matched on what the entry teaches rather than on its spelling, the
+        // same way the app and the Raycast extension do it, so a word the
+        // dictionary carries in one sense can still be suggested in another.
+        const { publicCards } = await findExistingCards(supabase, word, context);
         if (publicCards.length > 0) {
           return buildToolError(_describeExistingPublicCards(word, publicCards));
         }
