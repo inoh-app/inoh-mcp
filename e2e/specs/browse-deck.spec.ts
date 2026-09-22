@@ -136,18 +136,19 @@ describe('the words they keep forgetting', () => {
 
   it('ranks the most forgotten card first, and leaves the unmissed ones out', async () => {
     const [everyDay, sometimes] = await browse({ selection: 'newest', count: 2 });
-    // Reason: the review columns are the app's to write, so the fixture the
-    // spec needs is written the same way the app would — as the signed-in
-    // user, through RLS.
+    // Reason: only the backend writes a card's schedule, so the fixture is
+    // made the way a learner makes it: by reviewing. A card's first review is
+    // always graded Hard, so each is introduced once, then forgotten twice
+    // and once.
     for (const [card, forgetCount] of [
-      [everyDay, 5],
-      [sometimes, 2],
+      [everyDay, 2],
+      [sometimes, 1],
     ] as const) {
-      const { error } = await session.supabase
-        .from('user_cards')
-        .update({ forget_count: forgetCount })
-        .eq('dictionary_id', card?.cardId ?? '');
-      expect(error).toBeNull();
+      const recalls = ['remembered', ...Array<string>(forgetCount).fill('forgot')];
+      for (const recall of recalls) {
+        const result = await connection.callTool('record_review', { cardId: card?.cardId, recall });
+        expect(result.isError).not.toBe(true);
+      }
     }
 
     const struggling = await browse({ selection: 'struggling', count: 20 });
