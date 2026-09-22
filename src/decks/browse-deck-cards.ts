@@ -1,12 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DECK_CARD_COLUMNS, toDeckCards, type DeckCard } from './deck-card.js';
+import { fetchTodaysReviewCards } from './todays-review-cards.js';
 
 /**
  * The ways a caller can take cards out of a deck without naming a word.
  *
- * `due` and `struggling` read the review columns the app's scheduler writes;
- * neither of them writes anything back, so browsing never disturbs a card's
- * schedule.
+ * `due` is today's review session, as the app would deal it. `due` and
+ * `struggling` read the review columns; neither writes anything back, so
+ * browsing never disturbs a card's schedule. Only recording a review does.
  */
 export type DeckSelection = 'random' | 'newest' | 'oldest' | 'due' | 'struggling';
 
@@ -59,9 +60,8 @@ const _selectDeckCards = (
 /**
  * Cards in the order the selection asks for.
  *
- * `due` leans on NULL never comparing true, which drops the cards that have no
- * review scheduled. `struggling` asks for cards forgotten at least once, so a
- * deck nobody has got wrong comes back empty rather than arbitrary.
+ * `struggling` asks for cards forgotten at least once, so a deck nobody has
+ * got wrong comes back empty rather than arbitrary.
  *
  * @param supabase - Client acting as the signed-in user
  * @param selection - Which cards to take; random is drawn elsewhere
@@ -71,7 +71,7 @@ const _selectDeckCards = (
  */
 const _fetchOrderedDeckCards = async (
   supabase: SupabaseClient,
-  selection: Exclude<DeckSelection, 'random'>,
+  selection: Exclude<DeckSelection, 'random' | 'due'>,
   deckId: string | undefined,
   count: number,
 ) => {
@@ -82,11 +82,6 @@ const _fetchOrderedDeckCards = async (
       return cards.order('created_at', { ascending: false }).limit(count);
     case 'oldest':
       return cards.order('created_at', { ascending: true }).limit(count);
-    case 'due':
-      return cards
-        .lte('next_review', new Date().toISOString())
-        .order('next_review', { ascending: true })
-        .limit(count);
     case 'struggling':
       return cards
         .gt('forget_count', 0)
@@ -167,6 +162,11 @@ export const browseDeckCards = async (
 ): Promise<DeckCard[]> => {
   if (selection === 'random') {
     return _drawRandomDeckCards(supabase, deckId, count);
+  }
+
+  if (selection === 'due') {
+    const sessionCards = await fetchTodaysReviewCards(supabase, deckId);
+    return sessionCards.slice(0, count);
   }
 
   const { data, error } = await _fetchOrderedDeckCards(supabase, selection, deckId, count);

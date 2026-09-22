@@ -6,6 +6,7 @@ import { registerCheckAccountTool } from './check-account.js';
 import { registerCheckCardStatusTool } from './check-card-status.js';
 import { registerCreatePrivateCardTool } from './create-private-card.js';
 import { registerDeletePrivateCardTool } from './delete-private-card.js';
+import { registerRecordReviewTool } from './record-review.js';
 import { registerRemoveCardFromDeckTool } from './remove-card-from-deck.js';
 import { registerRequestPublicCardTool } from './request-public-card.js';
 import { registerSearchDeckTool } from './search-deck.js';
@@ -26,6 +27,7 @@ export const registerAllTools = (server: McpServer, connection: SupabaseConnecti
   registerSearchDictionaryTool(server, connection);
   registerSearchDeckTool(server, connection);
   registerBrowseDeckTool(server, connection);
+  registerRecordReviewTool(server, connection);
   registerAddCardToDeckTool(server, connection);
   registerRemoveCardFromDeckTool(server, connection);
   registerCreatePrivateCardTool(server, connection);

@@ -29,6 +29,7 @@ Step-by-step instructions for Claude, Cursor, ChatGPT, Gemini, VS Code and more 
 | `search_dictionary`     | Look a word or phrase up, public dictionary and your own cards |
 | `search_deck`           | Search the words you already have, across your decks or one    |
 | `browse_deck`           | Pull words out of your deck with no search term at all         |
+| `record_review`         | Save how well you remembered a word while reviewing            |
 | `add_card_to_deck`      | Put a card that already exists into one of your decks          |
 | `remove_card_from_deck` | Take a card back out of your deck, keeping the card itself     |
 | `create_private_card`   | Build a complete flashcard for a word and file it in your deck |
@@ -48,6 +49,7 @@ Things people actually say:
 - "Give me ten random words from my deck."
 - "What have I added to my deck lately?"
 - "What should I review today?"
+- "Quiz me on today's words."
 - "Which words do I keep forgetting?"
 - "Have I got any _get_ phrasal verbs in my deck?"
 - "Take _banyan_ out of my deck, I know it now."
@@ -67,9 +69,22 @@ forgives a typo the same way the app's search does, and it tells you which deck 
 
 `browse_deck` is the one to reach for when there is no word to search for. Ask for a random
 handful and you get a different draw every time; ask for the newest or the oldest and you get
-them in the order you added them; ask what is due and you get what the app would put in front of
-you next, most overdue first; ask what you keep forgetting and you get the cards you have missed
-in review, the worst first. Reading your deck this way never touches a card's review schedule.
+them in the order you added them; ask what is due and you get today's review session, the same one
+the app would deal: the words due by the end of your day, most overdue first, then a few you have
+never reviewed; ask what you keep forgetting and you get the cards you have missed in review, the
+worst first. Reading your deck this way never touches a card's review schedule.
+
+## Reviewing in a conversation
+
+Ask the AI to quiz you and it works through today's session however suits the conversation: it
+might say a word and ask what it means, give you a meaning and ask for the word, or use it in a
+sentence. After each answer it judges how well you remembered it (you had it, you half had it, or
+you didn't) and `record_review` saves that straight away, so stopping halfway loses nothing.
+
+A review here counts exactly like one in the app. The word is scheduled by the same rules and won't
+come back until it is due again. It counts toward the free plan's 50 reviews a day, and toward your
+streak: a day counts once you have reviewed 15 words, across the app and every AI client together,
+or once nothing is left to review that day.
 
 ## Removing versus deleting
 

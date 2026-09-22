@@ -19,7 +19,10 @@ const SELECTION_SUMMARIES: Record<DeckSelection, string> = {
   random: 'drawn at random',
   newest: 'the most recently added first',
   oldest: 'the longest-held first',
-  due: 'due for review, the most overdue first',
+  due:
+    "in today's review session: the ones due today, most overdue first, then a few they " +
+    'have never reviewed. Quiz them one card at a time and record each answer with ' +
+    'record_review as soon as they give it',
   struggling: 'the ones they forget most often first',
 };
 
@@ -37,8 +40,8 @@ const DESCRIBE_EMPTY_RESULT: Record<DeckSelection, (scope: string) => string> = 
   newest: _describeEmptyDeck,
   oldest: _describeEmptyDeck,
   due: (scope) =>
-    `Nothing in ${scope} is due for review right now. Their deck may still hold cards they ` +
-    'have never reviewed — ask for the newest ones to see those.',
+    `Nothing in ${scope} is left to review today — no card is due and none is waiting for a ` +
+    'first review. That is the day done.',
   struggling: (scope) =>
     `No card in ${scope} has been forgotten in a review yet, so there is nothing they are ` +
     'struggling with.',
@@ -66,14 +69,17 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         '"give me ten random words from my deck", "what have I added lately?", "what should I ' +
         'review today?" and "which words do I keep forgetting?". `selection` picks which cards ' +
         'come back: `random` for a fresh draw every call, `newest` or `oldest` by when they ' +
-        'added the card, `due` for the ones scheduled for review now, `struggling` for the ones ' +
+        "added the card, `due` for today's review session (the cards due by the end of their " +
+        'day, then a few they have never reviewed, the same session the app would deal), ' +
+        '`struggling` for the ones ' +
         `they have forgotten most often in review. Returns up to ${DECK_BROWSE_MAX_COUNT} cards ` +
         'with cardId, word, definition, which deck holds it, a link to the word page on ' +
         'inoh.app, and `isPrivate` — true for a card the user made, so describe it as theirs ' +
         'rather than as an Inoh entry, and remember only those can be deleted or remade. Pass a ' +
         'cardId to remove_card_from_deck or update_private_card to act on one. Reading the deck ' +
-        'this way never changes a card or its review schedule. search_deck is what answers ' +
-        'whether they hold one particular word.',
+        'this way never changes a card or its review schedule; when they review, quiz them ' +
+        'and record each answer with record_review. search_deck is what answers whether they ' +
+        'hold one particular word.',
       inputSchema: {
         selection: z
           .enum(['random', 'newest', 'oldest', 'due', 'struggling'])

@@ -90,10 +90,15 @@ describe('a random handful', () => {
   });
 });
 
-describe('what is due for review', () => {
-  it('returns the scheduled cards and nothing else', async () => {
-    const due = await browse({ selection: 'due', count: 20 });
-    expect(new Set(due.map((card) => card.word))).toEqual(new Set(account.dueWords));
+describe("today's review session", () => {
+  it('deals the cards due today first, then the ones never reviewed, as the app does', async () => {
+    const session = await browse({ selection: 'due', count: 20 });
+    const dueCount = account.dueWords.length;
+
+    expect(session).toHaveLength(account.cardCount);
+    expect(new Set(session.slice(0, dueCount).map((card) => card.word))).toEqual(
+      new Set(account.dueWords),
+    );
   });
 });
 
