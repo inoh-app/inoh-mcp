@@ -3,44 +3,12 @@ import * as z from 'zod/v4';
 import { getUserAccessToken } from '../auth/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
 import { buildCardChoiceQuestion, requireOneCardSelector } from './card-selection.js';
+import { readEdgeFunctionRefusal, type EdgeFunctionRefusal } from './edge-function-refusal.js';
 import { lookupOwnCard, type OwnCardLookup } from './own-card-lookup.js';
 import { buildToolError } from './tool-result.js';
 
 /** The edge function that owns deletion: the row, its deck rows, and its media. */
 const DELETE_PRIVATE_CARD_FUNCTION = 'delete-private-card';
-
-/** What the function answers with when it refuses or fails. */
-interface DeletePrivateCardResponse {
-  error?: string;
-}
-
-/**
- * The reason the function gave for refusing, if it gave one.
- *
- * Reason: supabase-js turns any non-2xx into an error whose message is only
- * "Edge Function returned a non-2xx status code", and hangs the real response
- * off `context`. The function's own message is the useful one — "Card not
- * found. It may already have been deleted." — so it is read back out here
- * rather than thrown away.
- *
- * The response is recognised by having a `json()` rather than by
- * `instanceof Response`: this package compiles against `lib: ES2022` with only
- * Node types, where that global is not guaranteed to be a type.
- *
- * @param error - What functions.invoke returned
- * @returns The function's message, or null when this was not a refusal
- */
-const _readRefusal = async (error: unknown): Promise<string | null> => {
-  const { context } = error as { context?: { json?: () => Promise<unknown> } };
-  if (typeof context?.json !== 'function') return null;
-
-  try {
-    const body = (await context.json()) as DeletePrivateCardResponse;
-    return body.error ?? null;
-  } catch {
-    return null;
-  }
-};
 
 /**
  * Say why no card could be deleted, and what to do about it.
@@ -133,15 +101,15 @@ export const registerDeletePrivateCardTool = (
       // write, so a client-side delete would always leave the image and three
       // audio clips behind. The edge function is the one path that cannot
       // forget them, and it re-checks ownership itself.
-      const { error } = await supabase.functions.invoke<DeletePrivateCardResponse>(
+      const { error } = await supabase.functions.invoke<EdgeFunctionRefusal>(
         DELETE_PRIVATE_CARD_FUNCTION,
         { body: { dictionary_id: card.id } },
       );
 
       if (error) {
-        const refusal = await _readRefusal(error);
-        if (refusal !== null) {
-          return buildToolError(refusal);
+        const refusal = await readEdgeFunctionRefusal(error);
+        if (refusal?.error !== undefined) {
+          return buildToolError(refusal.error);
         }
         throw new Error(`Could not delete the card: ${error.message}`);
       }

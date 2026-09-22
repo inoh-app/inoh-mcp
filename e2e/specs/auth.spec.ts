@@ -113,6 +113,7 @@ describe('a client signed in with an emailed code', () => {
           'check_card_status',
           'create_private_card',
           'delete_private_card',
+          'record_review',
           'remove_card_from_deck',
           'request_public_card',
           'search_deck',
