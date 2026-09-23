@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DECK_CARD_COLUMNS, toDeckCards, type DeckCard } from './deck-card.js';
-import { fetchTodaysReviewCards } from './todays-review-cards.js';
+import { fetchTodaysReviewSession } from './todays-review-cards.js';
 
 /**
  * The ways a caller can take cards out of a deck without naming a word.
@@ -38,6 +38,16 @@ export interface DeckBrowseRequest {
   count: number;
   /** One deck to read, or undefined for all of them. */
   deckId: string | undefined;
+}
+
+/** The cards a browse took, and for `due`, how many more wait today. */
+export interface DeckBrowseResult {
+  cards: DeckCard[];
+  /**
+   * Cards due today that this session left out. Set only for `due`, where a
+   * session of ten is not the whole day when more are waiting.
+   */
+  moreDueTodayCount?: number;
 }
 
 /**
@@ -159,14 +169,18 @@ const _drawRandomDeckCards = async (
 export const browseDeckCards = async (
   supabase: SupabaseClient,
   { selection, count, deckId }: DeckBrowseRequest,
-): Promise<DeckCard[]> => {
+): Promise<DeckBrowseResult> => {
   if (selection === 'random') {
-    return _drawRandomDeckCards(supabase, deckId, count);
+    return { cards: await _drawRandomDeckCards(supabase, deckId, count) };
   }
 
   if (selection === 'due') {
-    const sessionCards = await fetchTodaysReviewCards(supabase, deckId);
-    return sessionCards.slice(0, count);
+    const { dueCards, newCards, dueTodayCount } = await fetchTodaysReviewSession(supabase, deckId);
+    const shownDueCount = Math.min(dueCards.length, count);
+    return {
+      cards: [...dueCards, ...newCards].slice(0, count),
+      moreDueTodayCount: dueTodayCount - shownDueCount,
+    };
   }
 
   const { data, error } = await _fetchOrderedDeckCards(supabase, selection, deckId, count);
@@ -175,5 +189,5 @@ export const browseDeckCards = async (
     throw new Error(`Could not read the user's deck: ${error.message}`);
   }
 
-  return toDeckCards(data);
+  return { cards: toDeckCards(data) };
 };

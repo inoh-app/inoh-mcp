@@ -52,11 +52,10 @@ export const registerRequestPublicCardTool = (
         'This is how a user contributes: Inoh builds the card, then a person at Inoh reads it ' +
         'before anything is published, so it is not instant — expect days rather than a ' +
         'minute — and it can be turned down. If it is published, the card belongs to ' +
-        "everyone, and it also lands in the requester's own deck. It costs nothing: public " +
-        'requests are unlimited on every plan and spend none of the monthly private-card ' +
-        'allowance. Use it when the dictionary is missing a word that belongs in it, which ' +
-        'search_dictionary is what establishes. When the user just wants the word in their ' +
-        'own deck now, create_private_card is the right tool instead — it takes about a ' +
+        "everyone, and it also lands in the requester's own deck. Public requests spend " +
+        'none of the monthly private-card allowance. Use it when the dictionary is missing a ' +
+        'word that belongs in it, which search_dictionary is what establishes. When the user ' +
+        'just wants the word in their own deck now, create_private_card is the right tool instead — it takes about a ' +
         'minute and nobody has to approve it. Offer this one when they say the dictionary ' +
         'ought to have a word, or ask how to contribute; do not quietly send a suggestion off ' +
         'to review when someone asked for a card of their own. Inoh only generates English ' +

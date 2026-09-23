@@ -32,6 +32,21 @@ const _describeEmptyDeck = (scope: string): string =>
   'add_card_to_deck puts one in a deck.';
 
 /**
+ * Tells the client whether today's session is the whole day.
+ *
+ * Reason: a session stops at ten due cards, the app's size, so a learner with
+ * forty due would otherwise finish it believing the day was done.
+ *
+ * @param moreDueTodayCount - Cards due today that the session left out
+ * @returns A sentence to follow the session summary
+ */
+const _describeMoreDueToday = (moreDueTodayCount: number): string =>
+  moreDueTodayCount === 0
+    ? ' That is everything due today.'
+    : ` ${moreDueTodayCount} more card${moreDueTodayCount === 1 ? ' is' : 's are'} due today ` +
+      'after these. Tell them so when you start, and offer another session once this one is done.';
+
+/**
  * What to say when a selection comes back with nothing, which for `due` and
  * `struggling` is good news about the deck rather than an empty one.
  */
@@ -112,7 +127,11 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         );
       }
 
-      const cards = await browseDeckCards(supabase, { selection, count, deckId: chosenDeck?.id });
+      const { cards, moreDueTodayCount } = await browseDeckCards(supabase, {
+        selection,
+        count,
+        deckId: chosenDeck?.id,
+      });
       const results = cards.map((card) => toDeckCardResult(card, decks));
       const scope =
         chosenDeck === undefined ? 'any of their decks' : `their "${chosenDeck.name}" deck`;
@@ -122,7 +141,11 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
       }
 
       const capNote =
-        results.length === count ? ' That is as many as they asked for; there may be more.' : '';
+        moreDueTodayCount !== undefined
+          ? _describeMoreDueToday(moreDueTodayCount)
+          : results.length === count
+            ? ' That is as many as they asked for; there may be more.'
+            : '';
 
       return {
         content: [
