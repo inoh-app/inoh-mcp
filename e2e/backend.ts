@@ -130,7 +130,7 @@ export const resetAccount = (options: {
   plan?: Plan;
   profile?: SeedProfile;
   privateCards?: number;
-  /** Cards already reviewed today, for unlimited-review scenarios. */
+  /** Cards already reviewed today, for daily progress scenarios. */
   studiedToday?: number;
   /** Private cards already asked for this month, against the allowance. */
   spentPrivateCards?: number;

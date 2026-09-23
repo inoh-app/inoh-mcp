@@ -82,8 +82,7 @@ sentence. After each answer it judges how well you remembered it (you had it, yo
 you didn't) and `record_review` saves that straight away, so stopping halfway loses nothing.
 
 A review here counts exactly like one in the app. The word is scheduled by the same rules and won't
-come back until it is due again. Daily reviews are unlimited on every plan; MCP usage limits
-are separate future work. Each review counts toward your streak: a day counts once you have
+come back until it is due again. Each review counts toward your streak: a day counts once you have
 reviewed 15 words, across the app and every AI client together,
 or once you have finished the day's session, with nothing already due left and five new words (or
 all you have) done.
