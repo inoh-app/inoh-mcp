@@ -36,6 +36,14 @@ const TOOL_CALL_EXPLANATION =
   'A tool call is one thing an AI assistant does in Inoh for them, like recording an answer.';
 
 /**
+ * Where a refused learner can carry on today.
+ *
+ * Reason: reviews in the app are unlimited on every plan, so running out here
+ * never has to end their practice, only move it.
+ */
+const APP_FALLBACK = 'You can keep reviewing in the Inoh app in the meantime.';
+
+/**
  * What the next plan up buys, said in review sessions rather than calls.
  *
  * Reason: a "call" means nothing to a learner. A session every day is what
@@ -91,7 +99,7 @@ export const describeSpentAllowance = (allowance: WeeklyToolCallAllowance): stri
   const planName = PLAN_NAMES[allowance.plan] ?? allowance.plan;
   const spent =
     `All ${allowance.weeklyLimit} MCP tool calls in this week's ${planName} plan allowance are ` +
-    `used up. ${TOOL_CALL_EXPLANATION} They reset on Monday.`;
+    `used up. ${TOOL_CALL_EXPLANATION} They reset on Monday. ${APP_FALLBACK}`;
   const pitch = NEXT_PLAN_PITCH[allowance.plan];
   return pitch === undefined ? spent : `${spent} ${pitch}. Upgrade at ${PLANS_URL}`;
 };

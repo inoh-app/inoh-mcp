@@ -73,6 +73,7 @@ describe('the weekly allowance', () => {
     );
     expect(textOf(refusal)).toContain('A tool call is one thing an AI assistant does in Inoh');
     expect(textOf(refusal)).toContain('They reset on Monday.');
+    expect(textOf(refusal)).toContain('You can keep reviewing in the Inoh app in the meantime.');
     expect(textOf(refusal)).toContain('Inoh Plus covers a review session every day');
     expect(textOf(refusal)).toContain('/subscription-plan');
 
