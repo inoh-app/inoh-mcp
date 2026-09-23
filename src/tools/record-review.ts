@@ -62,8 +62,7 @@ const _describeRefusal = (refusal: EdgeFunctionRefusal): string => {
  * words came back as due the next day, and the app never knew the review had
  * happened. The grading and scheduling happen in the record-review edge
  * function, the same one the app uses, so a review here counts exactly like a
- * review there: the streak and the card's next due date. All plans have
- * unlimited daily reviews.
+ * review there: the streak and the card's next due date.
  *
  * @param server - The MCP server to register the tool on
  * @param connection - Supabase project URL and publishable key
@@ -88,7 +87,7 @@ export const registerRecordReviewTool = (
         'unsure; `forgot` when they did not know it or got it wrong. When unsure between two, ' +
         'pick the lower one. Tell them the right answer when they missed it, then move to the ' +
         'next card; no need to announce that it was saved. Take cards from browse_deck with ' +
-        "selection `due`, which is today's session. Daily reviews are unlimited on every plan.",
+        "selection `due`, which is today's session.",
       inputSchema: {
         cardId: z.string().uuid().describe('The cardId of the card they just answered.'),
         recall: z
