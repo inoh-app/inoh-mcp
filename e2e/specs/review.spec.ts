@@ -59,6 +59,14 @@ afterAll(async () => {
   await server?.close();
 });
 
+describe("today's session", () => {
+  it('says when it holds everything due today', async () => {
+    const result = await connection.callTool('browse_deck', { selection: 'due', count: 20 });
+
+    expect(textOf(result)).toContain('That is everything due today.');
+  });
+});
+
 describe('recording an answer', () => {
   it('saves it and takes the card out of today’s session', async () => {
     const [firstCard] = await fetchSession();

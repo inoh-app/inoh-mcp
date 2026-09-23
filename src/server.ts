@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SupabaseConnection } from './supabase/index.js';
+import { meterToolCalls } from './tool-allowance/index.js';
 import { registerAllTools } from './tools/index.js';
 
 const SERVER_NAME = 'inoh-mcp';
@@ -23,7 +24,10 @@ const SERVER_INSTRUCTIONS =
   'when two cards share a word, ask which meaning they mean by quoting the definitions.\n\n' +
   "Leave Inoh's inner workings out of the conversation too: parameter names, field names, " +
   'and how a card gets put together. Tell the user what they get or lose — "it keeps your ' +
-  'review progress" — not how Inoh does it.';
+  'review progress" — not how Inoh does it.\n\n' +
+  "Every Inoh tool call except the account check counts against the user's weekly " +
+  'allowance of MCP tool calls, which resets on Monday. Call only what the conversation needs: in a review, ' +
+  "take today's session once and record each answer, without looking cards up in between.";
 
 /**
  * Builds a fresh `McpServer` with all Inoh tools registered.
@@ -39,6 +43,7 @@ export const createInohMcpServer = (connection: SupabaseConnection): McpServer =
     { name: SERVER_NAME, version: SERVER_VERSION },
     { instructions: SERVER_INSTRUCTIONS },
   );
+  meterToolCalls(server, connection);
   registerAllTools(server, connection);
   return server;
 };

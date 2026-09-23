@@ -87,6 +87,26 @@ reviewed 15 words, across the app and every AI client together,
 or once you have finished the day's session, with nothing already due left and five new words (or
 all you have) done.
 
+A session is up to 15 words: the ten most overdue, then five new ones. When more are due than one
+session holds, the AI says so and can start another once you finish.
+
+## Your weekly allowance
+
+Your plan includes a weekly allowance of MCP tool calls. A tool call is one thing your AI assistant
+does in Inoh for you: taking today's session, recording one answer, adding or looking up a word.
+Recording each answer is one call and taking the session is one more, so a full session of 15
+words uses 16. Checking which account you're signed in as is free. The allowance resets on Monday
+at midnight where you are.
+
+| Plan | Tool calls a week | About                                       |
+| ---- | ----------------- | ------------------------------------------- |
+| Free | 50                | 3 review sessions a week (~6 reviews a day) |
+| Plus | 150               | a review session every day (~20 a day)      |
+| Pro  | 500               | several review sessions a day (~70 a day)   |
+
+Adding, searching and browsing use tool calls too. When only a few are left the AI mentions it, and
+once they're gone it tells you when they come back and where to upgrade.
+
 ## Removing versus deleting
 
 These are different things, and the tools keep them apart.
@@ -162,8 +182,8 @@ reviewer, so this takes days rather than a minute, and it can be turned down. If
 the card belongs to everyone who uses Inoh — and it is added to your deck too, so you are not
 waiting on your own suggestion to study the word.
 
-It costs nothing. Requests are unlimited on every plan and spend none of your monthly private-card
-allowance, so suggesting a word never uses up a card you might want for yourself. (One ceiling
+Suggestions spend none of your monthly private-card allowance, so suggesting a word never uses up
+a card you might want for yourself. (One ceiling
 does apply: 100 requests a day across everything you ask Inoh to make, which exists to stop a
 runaway script rather than you.)
 

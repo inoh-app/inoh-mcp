@@ -11,6 +11,7 @@ export {
   DECK_BROWSE_DEFAULT_COUNT,
   DECK_BROWSE_MAX_COUNT,
   type DeckBrowseRequest,
+  type DeckBrowseResult,
   type DeckSelection,
 } from './browse-deck-cards.js';
 export { type DeckCard } from './deck-card.js';

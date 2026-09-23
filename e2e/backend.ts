@@ -134,6 +134,8 @@ export const resetAccount = (options: {
   studiedToday?: number;
   /** Private cards already asked for this month, against the allowance. */
   spentPrivateCards?: number;
+  /** MCP tool calls already made this week, against the weekly allowance. */
+  spentMcpCalls?: number;
 }): SeededAccount =>
   _runFixtureCommand<SeededAccount>('reset-user', {
     email: options.email,
@@ -142,6 +144,7 @@ export const resetAccount = (options: {
     ..._buildOptionalFlag('private-cards', options.privateCards),
     ..._buildOptionalFlag('studied-today', options.studiedToday),
     ..._buildOptionalFlag('spent-private-cards', options.spentPrivateCards),
+    ..._buildOptionalFlag('spent-mcp-calls', options.spentMcpCalls),
   });
 
 /**
