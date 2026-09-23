@@ -1,7 +1,7 @@
 /** What an Inoh edge function answers with when it refuses or fails. */
 export interface EdgeFunctionRefusal {
   error?: string;
-  /** A stable name for the refusal, e.g. `DAILY_REVIEW_LIMIT`, when the function gives one. */
+  /** A stable name for the refusal, e.g. `CARD_NOT_IN_DECK`, when the function gives one. */
   code?: string;
 }
 

@@ -130,6 +130,8 @@ export const resetAccount = (options: {
   plan?: Plan;
   profile?: SeedProfile;
   privateCards?: number;
+  /** Cards already reviewed today, for unlimited-review scenarios. */
+  studiedToday?: number;
   /** Private cards already asked for this month, against the allowance. */
   spentPrivateCards?: number;
 }): SeededAccount =>
@@ -138,6 +140,7 @@ export const resetAccount = (options: {
     plan: options.plan ?? 'free',
     profile: options.profile ?? 'learner',
     ..._buildOptionalFlag('private-cards', options.privateCards),
+    ..._buildOptionalFlag('studied-today', options.studiedToday),
     ..._buildOptionalFlag('spent-private-cards', options.spentPrivateCards),
   });
 

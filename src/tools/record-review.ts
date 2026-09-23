@@ -44,11 +44,6 @@ const _describeNextReview = (nextReview: string | null): string => {
  */
 const _describeRefusal = (refusal: EdgeFunctionRefusal): string => {
   switch (refusal.code) {
-    case 'DAILY_REVIEW_LIMIT':
-      return (
-        `${refusal.error ?? 'They have reached the daily review limit.'} Stop the review here ` +
-        'and tell them; this answer was not saved.'
-      );
     case 'CARD_NOT_IN_DECK':
       return (
         'That card is not in any of their decks, so there is no review progress to record. ' +
@@ -67,7 +62,8 @@ const _describeRefusal = (refusal: EdgeFunctionRefusal): string => {
  * words came back as due the next day, and the app never knew the review had
  * happened. The grading and scheduling happen in the record-review edge
  * function, the same one the app uses, so a review here counts exactly like a
- * review there: the daily limit, the streak and the card's next due date.
+ * review there: the streak and the card's next due date. All plans have
+ * unlimited daily reviews.
  *
  * @param server - The MCP server to register the tool on
  * @param connection - Supabase project URL and publishable key
@@ -92,8 +88,7 @@ export const registerRecordReviewTool = (
         'unsure; `forgot` when they did not know it or got it wrong. When unsure between two, ' +
         'pick the lower one. Tell them the right answer when they missed it, then move to the ' +
         'next card; no need to announce that it was saved. Take cards from browse_deck with ' +
-        "selection `due`, which is today's session. On the free plan reviews stop at the " +
-        'daily limit.',
+        "selection `due`, which is today's session. Daily reviews are unlimited on every plan.",
       inputSchema: {
         cardId: z.string().uuid().describe('The cardId of the card they just answered.'),
         recall: z
