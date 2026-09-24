@@ -69,6 +69,8 @@ const _describeExistingCards = (word: string, existingCards: DictionaryCard[]): 
   return paragraphs.join('\n\n');
 };
 
+const TOOL_TITLE = 'Create a private card';
+
 /**
  * Registers a `create_private_card` tool that generates a full Inoh card for the
  * signed-in user and adds it to their deck.
@@ -83,7 +85,14 @@ export const registerCreatePrivateCardTool = (
   server.registerTool(
     'create_private_card',
     {
-      title: 'Create a private card',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
       description:
         'Creates a full Inoh flashcard for a word or phrase and adds it to the signed-in ' +
         "user's deck. The card goes into their private dictionary, which only they can see, " +

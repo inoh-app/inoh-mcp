@@ -3,6 +3,8 @@ import { getAuthenticatedUser } from '../auth/index.js';
 
 const MISSING_EMAIL_MESSAGE = 'Signed in to Inoh, but this account has no email address on record.';
 
+const TOOL_TITLE = 'Check account';
+
 /**
  * Registers a `check_account` tool that reports which Inoh account the
  * connection is signed in as.
@@ -17,7 +19,8 @@ export const registerCheckAccountTool = (server: McpServer): void => {
   server.registerTool(
     'check_account',
     {
-      title: 'Check account',
+      title: TOOL_TITLE,
+      annotations: { title: TOOL_TITLE, readOnlyHint: true, openWorldHint: false },
       description:
         'Returns the email of the Inoh account this connection is signed in as. ' +
         'Use it to confirm sign-in worked, and to check the connection is healthy.',

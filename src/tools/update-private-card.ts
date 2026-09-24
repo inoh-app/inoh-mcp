@@ -72,6 +72,8 @@ const _readLastContext = async (
   return (data as { context: string } | null)?.context ?? null;
 };
 
+const TOOL_TITLE = 'Update a card you made';
+
 /**
  * Registers an `update_private_card` tool that regenerates one of the signed-in
  * user's own cards in place, keeping its review history.
@@ -86,7 +88,14 @@ export const registerUpdatePrivateCardTool = (
   server.registerTool(
     'update_private_card',
     {
-      title: 'Update a card you made',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
       description:
         'Remakes a card the signed-in user created with create_private_card, when it came out ' +
         'wrong: a definition that misses the sense they meant, a flat example sentence, an ' +

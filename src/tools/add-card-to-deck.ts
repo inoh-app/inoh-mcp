@@ -44,6 +44,8 @@ const _findDeckHoldingCard = async (
   return (data as { deck_id: string } | null)?.deck_id ?? null;
 };
 
+const TOOL_TITLE = 'Add a card to a deck';
+
 /**
  * Registers an `add_card_to_deck` tool that puts an existing dictionary card
  * into one of the signed-in user's decks.
@@ -58,7 +60,14 @@ export const registerAddCardToDeckTool = (
   server.registerTool(
     'add_card_to_deck',
     {
-      title: 'Add a card to a deck',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
       description:
         "Adds a card that already exists to one of the signed-in user's decks, so it comes " +
         'up in their reviews. Identify it by `cardId` from search_dictionary, or by `word`. ' +

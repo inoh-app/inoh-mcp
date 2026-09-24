@@ -62,6 +62,8 @@ const DESCRIBE_EMPTY_RESULT: Record<DeckSelection, (scope: string) => string> = 
     'struggling with.',
 };
 
+const TOOL_TITLE = 'Browse the deck';
+
 /**
  * Registers a `browse_deck` tool that hands back cards the user already holds
  * without being given a word to look for.
@@ -78,7 +80,8 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
   server.registerTool(
     'browse_deck',
     {
-      title: 'Browse the deck',
+      title: TOOL_TITLE,
+      annotations: { title: TOOL_TITLE, readOnlyHint: true, openWorldHint: false },
       description:
         'Lists cards the signed-in user already holds, without searching for a word. Use it for ' +
         '"give me ten random words from my deck", "what have I added lately?", "what should I ' +

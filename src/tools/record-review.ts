@@ -54,6 +54,8 @@ const _describeRefusal = (refusal: EdgeFunctionRefusal): string => {
   }
 };
 
+const TOOL_TITLE = 'Record a review answer';
+
 /**
  * Registers a `record_review` tool that saves how well the user recalled one
  * card, which moves it along its review schedule.
@@ -74,7 +76,14 @@ export const registerRecordReviewTool = (
   server.registerTool(
     'record_review',
     {
-      title: 'Record a review answer',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
       description:
         'Saves how well the signed-in user recalled one card while reviewing, which schedules ' +
         'when they see it next, exactly as a review in the Inoh app would. Call it once per ' +

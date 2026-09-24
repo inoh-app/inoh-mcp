@@ -42,6 +42,8 @@ const _describeUndeletableCard = (lookup: Exclude<OwnCardLookup, { kind: 'found'
   }
 };
 
+const TOOL_TITLE = 'Delete a card you made';
+
 /**
  * Registers a `delete_private_card` tool that destroys one of the signed-in
  * user's own cards for good.
@@ -56,7 +58,14 @@ export const registerDeletePrivateCardTool = (
   server.registerTool(
     'delete_private_card',
     {
-      title: 'Delete a card you made',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
       description:
         'Destroys a card the signed-in user made with create_private_card: it leaves their ' +
         'private dictionary and every deck, and its image and audio are deleted. This is ' +

@@ -47,6 +47,8 @@ const _keepCardsInDecks = async (
   });
 };
 
+const TOOL_TITLE = 'Remove a card from a deck';
+
 /**
  * Registers a `remove_card_from_deck` tool that takes a card out of the
  * signed-in user's deck without destroying the card itself.
@@ -61,7 +63,14 @@ export const registerRemoveCardFromDeckTool = (
   server.registerTool(
     'remove_card_from_deck',
     {
-      title: 'Remove a card from a deck',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
       description:
         "Takes a card out of the signed-in user's deck so it stops coming up in reviews. " +
         'Nothing is destroyed: a public dictionary card stays in the dictionary for everyone, ' +

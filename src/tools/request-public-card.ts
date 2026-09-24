@@ -32,6 +32,8 @@ const _describeExistingPublicCards = (word: string, publicCards: DictionaryCard[
   'the user means a sense none of those cover, call request_public_card again with ' +
   'requestAnyway set to true and a `context` saying which sense.';
 
+const TOOL_TITLE = 'Request a card for the public dictionary';
+
 /**
  * Registers a `request_public_card` tool that offers a word to the public Inoh
  * dictionary, where a reviewer decides whether it is published for everyone.
@@ -46,7 +48,14 @@ export const registerRequestPublicCardTool = (
   server.registerTool(
     'request_public_card',
     {
-      title: 'Request a card for the public dictionary',
+      title: TOOL_TITLE,
+      annotations: {
+        title: TOOL_TITLE,
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
       description:
         'Asks Inoh to add a word to the public dictionary, the one every Inoh user shares. ' +
         'This is how a user contributes: Inoh builds the card, then a person at Inoh reads it ' +

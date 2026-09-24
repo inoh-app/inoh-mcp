@@ -42,6 +42,8 @@ const _toSearchResult = ({
   url: buildWordPageUrl(row.id),
 });
 
+const TOOL_TITLE = 'Search dictionary';
+
 /**
  * Registers a `search_dictionary` tool backed by the `search_dictionary_words`
  * Postgres function, the same search the Inoh app's Dictionary tab uses.
@@ -56,7 +58,8 @@ export const registerSearchDictionaryTool = (
   server.registerTool(
     'search_dictionary',
     {
-      title: 'Search dictionary',
+      title: TOOL_TITLE,
+      annotations: { title: TOOL_TITLE, readOnlyHint: true, openWorldHint: false },
       description:
         'Searches the Inoh dictionary for a word or phrase. Matches words containing the query ' +
         '(exact matches first) and falls back to typo-tolerant matching when nothing contains it. ' +

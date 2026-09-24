@@ -44,6 +44,8 @@ const _describeNothingFound = (
   );
 };
 
+const TOOL_TITLE = 'Card request status';
+
 /**
  * Registers a `check_card_status` tool that reports how the cards a user asked
  * for are coming along, in either dictionary.
@@ -58,7 +60,8 @@ export const registerCheckCardStatusTool = (
   server.registerTool(
     'check_card_status',
     {
-      title: 'Card request status',
+      title: TOOL_TITLE,
+      annotations: { title: TOOL_TITLE, readOnlyHint: true, openWorldHint: false },
       description:
         'Reports how the cards the signed-in user asked Inoh for are coming along, both the ' +
         'private ones they made for themselves and the words they suggested for the public ' +

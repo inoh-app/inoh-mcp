@@ -13,6 +13,8 @@ import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/i
 import { toDeckCardResult } from './deck-card-result.js';
 import { buildToolError } from './tool-result.js';
 
+const TOOL_TITLE = 'Search the deck';
+
 /**
  * Registers a `search_deck` tool that searches the cards the signed-in user
  * already holds, rather than the dictionary they could add from.
@@ -24,7 +26,8 @@ export const registerSearchDeckTool = (server: McpServer, connection: SupabaseCo
   server.registerTool(
     'search_deck',
     {
-      title: 'Search the deck',
+      title: TOOL_TITLE,
+      annotations: { title: TOOL_TITLE, readOnlyHint: true, openWorldHint: false },
       description:
         'Searches the words the signed-in user already has in their decks. Use it to answer ' +
         '"do I have this word?", and to check before adding a word, since a card they already ' +
