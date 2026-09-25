@@ -1,0 +1,13 @@
+{
+  "name": "inoh",
+  "owner": {
+    "name": "Inoh",
+    "email": "tai@inoh.app"
+  },
+  "plugins": [
+    {
+      "name": "inoh",
+      "source": "plugins/grok-bot"
+    }
+  ]
+}

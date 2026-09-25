@@ -22,6 +22,19 @@ Step-by-step instructions for Claude, Cursor, ChatGPT, Gemini, VS Code and more 
 [docs.inoh.app](https://docs.inoh.app). The address and troubleshooting are also in
 [docs/installation.md](docs/installation.md).
 
+## Grok Bot plugin
+
+The [Inoh plugin](plugins/grok-bot/README.md) packages the hosted MCP connection and a vocabulary
+skill for Grok Bot. It uses Cursor's plugin format and marketplace. Its manifest supplies the
+server address, so users can connect through the plugin's browser sign-in flow. The root
+`.cursor-plugin/marketplace.json` points to the standalone package in `plugins/grok-bot/`.
+Plugin packages are organized by target client under `plugins/`; each package connects to the
+same hosted MCP server.
+
+The plugin is MIT-licensed and is not yet listed. A signed-in client test and marketplace review
+are still required. See [publication and testing](docs/grok-bot-plugin.md) for the steps and publisher
+form values.
+
 ## What you can ask for
 
 | Tool                    | What it does                                                   |
@@ -231,6 +244,8 @@ Found something wrong? Open an issue on this repository.
 
 ## Licence
 
-All rights reserved. The source is published so you can audit what the server does with your
-account, not as an open source release. See [LICENSE](LICENSE). Connecting to the hosted server
-needs no licence.
+The MCP server source is published so you can audit what it does with your account and remains
+all rights reserved. See [LICENSE](LICENSE). Connecting to the hosted server needs no licence.
+
+The standalone plugin in `plugins/grok-bot/` and `.cursor-plugin/marketplace.json` are licensed under
+the [MIT License](plugins/grok-bot/LICENSE). This exception does not apply to the server source.

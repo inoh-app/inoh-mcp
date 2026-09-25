@@ -1,5 +1,14 @@
 Copyright (c) 2026 Inoh. All rights reserved.
 
+The following files are exceptions to this license and are licensed under the
+MIT License in plugins/grok-bot/LICENSE:
+
+- All files within plugins/grok-bot/
+- .cursor-plugin/marketplace.json
+
+All other files, including the MCP server source, remain subject to the terms
+below.
+
 This source code is published for transparency: so that anyone connecting an AI
 client to the Inoh MCP server can see exactly what it does with their account
 and their data.

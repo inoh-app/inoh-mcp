@@ -1,0 +1,16 @@
+{
+  "name": "inoh",
+  "version": "0.1.0",
+  "description": "Practice English vocabulary in chat, save words to your Inoh decks, and keep your reviews in sync with the app.",
+  "author": {
+    "name": "Inoh",
+    "email": "tai@inoh.app"
+  },
+  "homepage": "https://inoh.app",
+  "repository": "https://github.com/inoh-app/inoh-mcp",
+  "license": "MIT",
+  "keywords": ["inoh", "vocabulary", "english", "flashcards", "spaced-repetition"],
+  "logo": "assets/logo.png",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}
