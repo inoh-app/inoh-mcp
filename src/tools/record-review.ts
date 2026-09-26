@@ -94,9 +94,11 @@ export const registerRecordReviewTool = (
         'word, or use it in a sentence. Then judge their answer: `remembered` when they had ' +
         'it; `partly_remembered` when they got half of it, needed a hint, or were slow and ' +
         'unsure; `forgot` when they did not know it or got it wrong. When unsure between two, ' +
-        'pick the lower one. Tell them the right answer when they missed it, then move to the ' +
-        'next card; no need to announce that it was saved. Take cards from browse_deck with ' +
-        "selection `due`, which is today's session.",
+        'pick the lower one. When they missed it or only partly had it, tell them the right ' +
+        'answer and give them something that makes it stick, choosing what suits the word: ' +
+        'its etymology, an everyday example sentence, similar or opposite words, or a ' +
+        'mnemonic. Keep it to a line or two, then move to the next card. Take cards from ' +
+        "browse_deck with selection `due`, which is today's session.",
       inputSchema: {
         cardId: z.string().uuid().describe('The cardId of the card they just answered.'),
         recall: z
