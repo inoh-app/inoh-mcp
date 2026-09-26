@@ -63,8 +63,9 @@ export const registerRecordReviewTool = (
       description:
         'Saves how well the signed-in user recalled one card while reviewing, which schedules ' +
         'when they see it next, exactly as a review in the Inoh app would. Call it once per ' +
-        'card, right after they answer, not in a batch at the end, so nothing is lost if the ' +
-        'conversation stops. Only call it after they actually tried to recall the card; ' +
+        'card, after replying to their answer and before asking the next card, not in a batch ' +
+        'at the end, so nothing is lost if the conversation stops. Only call it after they ' +
+        'actually tried to recall the card; ' +
         'listing, explaining or talking about a word is not a review. Ask however suits the ' +
         'conversation: say the word and ask what it means, give the meaning and ask for the ' +
         'word, or use it in a sentence. Then judge their answer: `remembered` when they had ' +
@@ -74,7 +75,8 @@ export const registerRecordReviewTool = (
         'answer and give them something that makes it stick. Think about what would work ' +
         'best for this word and this learner: etymology, an everyday example sentence, ' +
         'similar or opposite words and a mnemonic are ideas, not a list to pick from, so use ' +
-        'your own if it fits better. Keep it to a line or two, then move to the next card. ' +
+        'your own if it fits better. Keep it to a line or two. Then record the review and ' +
+        'move to the next card. ' +
         'There is no need to tell them when they will see a card again. ' +
         "Take cards from browse_deck with selection `due`, which is today's session.",
       inputSchema: {
