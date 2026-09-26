@@ -95,10 +95,11 @@ export const registerRecordReviewTool = (
         'it; `partly_remembered` when they got half of it, needed a hint, or were slow and ' +
         'unsure; `forgot` when they did not know it or got it wrong. When unsure between two, ' +
         'pick the lower one. When they missed it or only partly had it, tell them the right ' +
-        'answer and give them something that makes it stick, choosing what suits the word: ' +
-        'its etymology, an everyday example sentence, similar or opposite words, or a ' +
-        'mnemonic. Keep it to a line or two, then move to the next card. Take cards from ' +
-        "browse_deck with selection `due`, which is today's session.",
+        'answer and give them something that makes it stick. Think about what would work ' +
+        'best for this word and this learner: etymology, an everyday example sentence, ' +
+        'similar or opposite words and a mnemonic are ideas, not a list to pick from, so use ' +
+        'your own if it fits better. Keep it to a line or two, then move to the next card. ' +
+        "Take cards from browse_deck with selection `due`, which is today's session.",
       inputSchema: {
         cardId: z.string().uuid().describe('The cardId of the card they just answered.'),
         recall: z
