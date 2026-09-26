@@ -12,30 +12,6 @@ const RECORD_REVIEW_FUNCTION = 'record-review';
 /** How well the learner recalled the card. record-review grades these Good, Hard and Again. */
 const RECALL_OUTCOMES = ['remembered', 'partly_remembered', 'forgot'] as const;
 
-/** What record-review answers with when the review was saved. */
-interface RecordedReview {
-  status: 'recorded' | 'duplicate';
-  next_review: string | null;
-}
-
-/**
- * Say when the card comes back, as a date rather than a timestamp.
- *
- * @param nextReview - The card's next review, as record-review returned it
- * @returns E.g. " It comes back for review around 24 September.", or an empty
- *   string when there is none
- */
-const _describeNextReview = (nextReview: string | null): string => {
-  if (nextReview === null) return '';
-
-  const date = new Date(nextReview).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    timeZone: 'UTC',
-  });
-  return ` It comes back for review around ${date}.`;
-};
-
 /**
  * What to tell the model when record-review refused.
  *
@@ -99,6 +75,7 @@ export const registerRecordReviewTool = (
         'best for this word and this learner: etymology, an everyday example sentence, ' +
         'similar or opposite words and a mnemonic are ideas, not a list to pick from, so use ' +
         'your own if it fits better. Keep it to a line or two, then move to the next card. ' +
+        'There is no need to tell them when they will see a card again. ' +
         "Take cards from browse_deck with selection `due`, which is today's session.",
       inputSchema: {
         cardId: z.string().uuid().describe('The cardId of the card they just answered.'),
@@ -110,15 +87,12 @@ export const registerRecordReviewTool = (
     async ({ cardId, recall }, extra) => {
       const supabase = createUserSupabaseClient(connection, getUserAccessToken(extra.authInfo));
 
-      const { data, error } = await supabase.functions.invoke<RecordedReview>(
-        RECORD_REVIEW_FUNCTION,
-        {
-          // Reason: one call is one answer, so each gets its own id. The
-          // server's duplicate check cannot tell a model that calls twice for
-          // one answer from two answers; the description is what guards that.
-          body: { dictionary_id: cardId, review_id: randomUUID(), source: 'mcp', recall },
-        },
-      );
+      const { error } = await supabase.functions.invoke(RECORD_REVIEW_FUNCTION, {
+        // Reason: one call is one answer, so each gets its own id. The
+        // server's duplicate check cannot tell a model that calls twice for
+        // one answer from two answers; the description is what guards that.
+        body: { dictionary_id: cardId, review_id: randomUUID(), source: 'mcp', recall },
+      });
 
       if (error) {
         const refusal = await readEdgeFunctionRefusal(error);
@@ -128,14 +102,10 @@ export const registerRecordReviewTool = (
         throw new Error(`Could not record the review: ${error.message}`);
       }
 
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Recorded.${_describeNextReview(data?.next_review ?? null)}`,
-          },
-        ],
-      };
+      // Reason: the next review date is left out on purpose. Handed a date,
+      // the model announced it after every answer ("It comes back tomorrow"),
+      // which the learner does not need; the app keeps the schedule for them.
+      return { content: [{ type: 'text', text: 'Recorded.' }] };
     },
   );
 };
