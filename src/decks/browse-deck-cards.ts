@@ -31,6 +31,15 @@ export const DECK_BROWSE_MAX_COUNT = 50;
  */
 const RANDOM_POOL_LIMIT = 5000;
 
+/**
+ * How many ids one request reads while filling the random pool.
+ *
+ * Reason: PostgREST returns at most 1,000 rows per request (the project's
+ * max_rows), whatever limit the query asks for, so a bigger pool is read a
+ * page at a time.
+ */
+const ID_PAGE_SIZE = 1000;
+
 /** What to take out of the deck, and how much of it. */
 export interface DeckBrowseRequest {
   selection: DeckSelection;
@@ -109,10 +118,46 @@ const _shuffle = <Value>(values: Value[]): Value[] =>
     .map(({ value }) => value);
 
 /**
+ * The ids of the user's cards, up to {@link RANDOM_POOL_LIMIT}, read a page at
+ * a time and ordered by id so no page repeats or skips a card.
+ *
+ * @param supabase - Client acting as the signed-in user
+ * @param deckId - One deck to read, or undefined for all of them
+ * @returns The card ids
+ * @throws {Error} When a page fails to load
+ */
+const _fetchDeckCardIds = async (
+  supabase: SupabaseClient,
+  deckId: string | undefined,
+): Promise<string[]> => {
+  const ids: string[] = [];
+
+  while (ids.length < RANDOM_POOL_LIMIT) {
+    const pageStart = ids.length;
+    const pageSize = Math.min(ID_PAGE_SIZE, RANDOM_POOL_LIMIT - pageStart);
+    const { data, error } = await _selectDeckCards(supabase, deckId, 'id')
+      .order('id', { ascending: true })
+      .range(pageStart, pageStart + pageSize - 1);
+
+    if (error) {
+      throw new Error(`Could not read the user's deck: ${error.message}`);
+    }
+
+    const pageIds = ((data ?? []) as unknown as { id: string }[]).map((row) => row.id);
+    ids.push(...pageIds);
+
+    const isLastPage = pageIds.length < pageSize;
+    if (isLastPage) break;
+  }
+
+  return ids;
+};
+
+/**
  * A random handful of the user's cards.
  *
  * Reason: PostgREST has no `order by random()`, so the draw happens here in
- * two steps. The first asks only for row ids — one uuid per card — and the
+ * two steps. The first asks only for row ids — one uuid per card, paged — and the
  * second joins the dictionary for the few that were drawn, so a full deck
  * never has to travel just to pick twenty words out of it.
  *
@@ -127,15 +172,7 @@ const _drawRandomDeckCards = async (
   deckId: string | undefined,
   count: number,
 ): Promise<DeckCard[]> => {
-  const { data: idRows, error: idError } = await _selectDeckCards(supabase, deckId, 'id').limit(
-    RANDOM_POOL_LIMIT,
-  );
-
-  if (idError) {
-    throw new Error(`Could not read the user's deck: ${idError.message}`);
-  }
-
-  const ids = ((idRows ?? []) as unknown as { id: string }[]).map((row) => row.id);
+  const ids = await _fetchDeckCardIds(supabase, deckId);
   const drawnIds = _shuffle(ids).slice(0, count);
 
   if (drawnIds.length === 0) {
