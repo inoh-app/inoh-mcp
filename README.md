@@ -252,4 +252,6 @@ the [MIT License](plugins/grok-bot/LICENSE). This exception does not apply to th
 
 ## Push checks
 
-Every branch push runs formatting, lint, and AI review in GitHub Actions. These checks report results after the push and do not change source files. The AI job requires an `ANTHROPIC_API_KEY` repository Actions secret. Review findings appear in the workflow job summary.
+Every push to `main`, including a pull request merge or a direct push, starts the Push checks workflow in GitHub Actions. The quality job checks formatting and lint. The AI job reviews the changed source code using this repository's `CLAUDE.md` and its `ANTHROPIC_API_KEY` Actions secret. These checks run after the change reaches `main`; feature-branch pushes do not start them.
+
+If quality fails or AI review reports findings without edits, inspect the Actions run and make a follow-up fix. If Claude edits code, Actions validates the edits and opens an `ai-fix/*` pull request targeting `main`. The AI job stays red to signal the open fix. Review and merge that PR manually. The PR itself does not run this main-only workflow, so check it against the latest `main` and resolve any conflicts before merging. The merge then starts a new Push checks run.
