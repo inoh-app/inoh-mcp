@@ -40,18 +40,25 @@ jobs:
           fi
 
   ai-review:
+    if: ${{ !startsWith(github.ref, 'refs/heads/ai-fix/') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install Claude Code
         run: npm install --global @anthropic-ai/claude-code
       - name: Review pushed source
+        id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DISABLE_AUTOUPDATER: '1'
@@ -60,3 +67,17 @@ jobs:
             "$(node -p "require(process.env.GITHUB_EVENT_PATH).before")" \
             "$GITHUB_SHA" \
             '*.js' '*.jsx' '*.ts' '*.tsx'
+      - name: Validate AI edits
+        if: steps.review.outputs.edited == 'true'
+        shell: bash
+        run: |
+          pnpm install --frozen-lockfile
+          mapfile -d '' -t EDITED_FILES < <(git diff --name-only -z)
+          pnpm exec prettier --write "${EDITED_FILES[@]}"
+          pnpm exec eslint --max-warnings 0 "${EDITED_FILES[@]}"
+          pnpm typecheck
+      - name: Open AI fix PR
+        if: steps.review.outputs.edited == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/ai-fix-pr.sh
