@@ -1,0 +1,64 @@
+name: Push checks
+
+on:
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Check formatting and lint
+        shell: bash
+        run: |
+          pnpm install --frozen-lockfile
+          BEFORE_SHA=$(node -p "require(process.env.GITHUB_EVENT_PATH).before")
+          if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+            BASE_SHA=$(git merge-base HEAD origin/main)
+          else
+            BASE_SHA=$BEFORE_SHA
+          fi
+          git cat-file -e "${BASE_SHA}^{commit}"
+          mapfile -d '' -t FORMAT_FILES < <(git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.js' '*.jsx' '*.ts' '*.tsx' '*.json' '*.md')
+          if (( ${#FORMAT_FILES[@]} > 0 )); then
+            pnpm exec prettier --check "${FORMAT_FILES[@]}"
+          fi
+          mapfile -d '' -t LINT_FILES < <(git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.js' '*.jsx' '*.ts' '*.tsx')
+          if (( ${#LINT_FILES[@]} > 0 )); then
+            pnpm exec eslint --max-warnings 0 "${LINT_FILES[@]}"
+          fi
+
+  ai-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Claude Code
+        run: npm install --global @anthropic-ai/claude-code
+      - name: Review pushed source
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DISABLE_AUTOUPDATER: '1'
+        run: |
+          ./scripts/ai-review.sh \
+            "$(node -p "require(process.env.GITHUB_EVENT_PATH).before")" \
+            "$GITHUB_SHA" \
+            '*.js' '*.jsx' '*.ts' '*.tsx'

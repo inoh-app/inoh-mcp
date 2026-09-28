@@ -249,3 +249,7 @@ all rights reserved. See [LICENSE](LICENSE). Connecting to the hosted server nee
 
 The standalone plugin in `plugins/grok-bot/` and `.cursor-plugin/marketplace.json` are licensed under
 the [MIT License](plugins/grok-bot/LICENSE). This exception does not apply to the server source.
+
+## Push checks
+
+Every branch push runs formatting, lint, and AI review in GitHub Actions. These checks report results after the push and do not change source files. The AI job requires an `ANTHROPIC_API_KEY` repository Actions secret. Review findings appear in the workflow job summary.
