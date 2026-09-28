@@ -11,6 +11,11 @@ export interface DeckCardResult {
   deckName: string;
   /** True when this is a card the user made rather than a public dictionary entry. */
   isPrivate: boolean;
+  /**
+   * True when the card is beyond their plan limit, so no review brings it up
+   * until they upgrade. The card itself is still theirs.
+   */
+  isReviewPaused: boolean;
   /** Word page in the Inoh web app, so clients can link to the full card. */
   url: string;
 }
@@ -37,5 +42,6 @@ export const toDeckCardResult = (card: DeckCard, decks: DeckRow[]): DeckCardResu
   definition: card.definition,
   deckName: _nameDeck(decks, card.deckId),
   isPrivate: card.owner_user_id !== null,
+  isReviewPaused: card.isReviewPaused,
   url: buildWordPageUrl(card.id),
 });

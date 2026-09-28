@@ -71,7 +71,9 @@ const _selectDeckCards = (
   deckId: string | undefined,
   columns: string,
 ) => {
-  const query = supabase.from('user_cards').select(columns);
+  // Reason: every selection here feeds practice, and paused cards are out of
+  // every review until the user upgrades (PRI-21123).
+  const query = supabase.from('user_cards').select(columns).eq('is_review_paused', false);
 
   return deckId === undefined ? query : query.eq('deck_id', deckId);
 };

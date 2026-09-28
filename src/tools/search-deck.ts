@@ -37,7 +37,9 @@ export const registerSearchDeckTool = (server: McpServer, connection: SupabaseCo
         `when nothing contains it. Returns up to ${DECK_SEARCH_RESULT_LIMIT} cards with ` +
         'cardId, word, definition, which deck holds it, a link to the word page on inoh.app, ' +
         'and `isPrivate` — true for a card the user made, so describe it as theirs rather than ' +
-        'as an Inoh entry, and remember only those can be deleted or remade. Pass a cardId to ' +
+        'as an Inoh entry, and remember only those can be deleted or remade, and ' +
+        '`isReviewPaused` — true when the card is beyond their plan limit, so no review brings ' +
+        'it up until they upgrade at inoh.app; it is still theirs. Pass a cardId to ' +
         'remove_card_from_deck or update_private_card to act on one. This searches only what ' +
         'they hold: search_dictionary is what finds words they could add, and browse_deck ' +
         'lists their cards without a search term — a random handful, the newest, or the ' +
