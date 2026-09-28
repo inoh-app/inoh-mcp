@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BRANCH_STATE=$(./scripts/ai-review-branch-state.sh)
-if [[ "$BRANCH_STATE" == "merged" ]]; then
-  echo "Source change reached main; the main push handles AI review" | tee -a "$GITHUB_STEP_SUMMARY"
-  exit 0
-fi
-
-REF_DIGEST=$(printf '%s' "$GITHUB_REF" | sha256sum | cut -c1-12)
-FIX_BRANCH="ai-fix/${REF_DIGEST}-${GITHUB_SHA:0:12}-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+FIX_BRANCH="ai-fix/main-${GITHUB_SHA:0:12}-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
 gh auth setup-git
 git fetch origin "$GITHUB_REF_NAME"
 SOURCE_TIP=$(git rev-parse FETCH_HEAD)
@@ -40,11 +33,5 @@ trap 'rm -f "$BODY_FILE"' EXIT
 
 PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_REF_NAME" --head "$FIX_BRANCH" \
   --title "Apply AI review fixes for ${GITHUB_SHA:0:12}" --body-file "$BODY_FILE")
-BRANCH_STATE=$(./scripts/ai-review-branch-state.sh)
-if [[ "$BRANCH_STATE" == "merged" ]]; then
-  gh pr close "$PR_URL" --repo "$GITHUB_REPOSITORY" --delete-branch
-  echo "Source change reached main during PR creation; closed the stale fix PR" | tee -a "$GITHUB_STEP_SUMMARY"
-  exit 0
-fi
 echo "AI review opened fix PR: $PR_URL" | tee -a "$GITHUB_STEP_SUMMARY"
 exit 1
