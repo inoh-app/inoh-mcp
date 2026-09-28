@@ -2,7 +2,7 @@ name: Push checks
 
 on:
   push:
-    branches: ['**']
+    branches: ['main']
 
 permissions:
   contents: read
@@ -40,7 +40,6 @@ jobs:
           fi
 
   ai-review:
-    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
