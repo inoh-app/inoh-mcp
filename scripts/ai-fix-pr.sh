@@ -19,6 +19,7 @@ BODY_FILE=$(mktemp)
 trap 'rm -f "$BODY_FILE"' EXIT
 {
   echo "AI review fixes for [${GITHUB_SHA:0:12}](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)."
+  echo "AI review base: $AI_REVIEW_BASE"
   echo
   echo "The review job validated these edits against that commit. If the target branch advanced, review the merge result and resolve any conflicts before merging."
   if [[ "$SOURCE_TIP" != "$GITHUB_SHA" ]]; then
@@ -33,5 +34,6 @@ trap 'rm -f "$BODY_FILE"' EXIT
 
 PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_REF_NAME" --head "$FIX_BRANCH" \
   --title "Apply AI review fixes for ${GITHUB_SHA:0:12}" --body-file "$BODY_FILE")
+./scripts/close-superseded-ai-fix-prs.sh
 echo "AI review opened fix PR: $PR_URL" | tee -a "$GITHUB_STEP_SUMMARY"
 exit 1

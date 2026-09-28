@@ -42,6 +42,9 @@ jobs:
   ai-review:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    concurrency:
+      group: ai-review-main
+      queue: max
     permissions:
       contents: write
       pull-requests: write
@@ -54,18 +57,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Include unresolved AI review changes
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/ai-review-scope.sh "$(node -p "require(process.env.GITHUB_EVENT_PATH).before")" "$GITHUB_SHA"
       - name: Install Claude Code
         run: npm install --global @anthropic-ai/claude-code
-      - name: Review pushed source
+      - name: Review current main source
         id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DISABLE_AUTOUPDATER: '1'
         run: |
           ./scripts/ai-review.sh \
-            "$(node -p "require(process.env.GITHUB_EVENT_PATH).before")" \
+            "${{ steps.scope.outputs.base }}" \
             "$GITHUB_SHA" \
             '*.js' '*.jsx' '*.ts' '*.tsx'
+      - name: Close resolved AI fix PRs
+        if: steps.review.outcome == 'success' && steps.review.outputs.edited != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/close-superseded-ai-fix-prs.sh
       - name: Validate AI edits
         if: steps.review.outputs.edited == 'true'
         shell: bash
@@ -79,4 +92,5 @@ jobs:
         if: steps.review.outputs.edited == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          AI_REVIEW_BASE: ${{ steps.scope.outputs.base }}
         run: ./scripts/ai-fix-pr.sh
