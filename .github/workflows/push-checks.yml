@@ -40,7 +40,7 @@ jobs:
           fi
 
   ai-review:
-    if: ${{ !startsWith(github.ref, 'refs/heads/ai-fix/') }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -51,26 +51,13 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check whether source branch reached main
-        id: branch-state
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          BRANCH_STATE=$(./scripts/ai-review-branch-state.sh)
-          if [[ "$BRANCH_STATE" == "merged" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Source change reached main; the main push handles AI review" >> "$GITHUB_STEP_SUMMARY"
-          fi
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install Claude Code
-        if: steps.branch-state.outputs.skip != 'true'
         run: npm install --global @anthropic-ai/claude-code
       - name: Review pushed source
-        if: steps.branch-state.outputs.skip != 'true'
         id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
