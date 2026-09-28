@@ -3,6 +3,7 @@ import * as z from 'zod/v4';
 import { getUserAccessToken } from '../auth/index.js';
 import {
   browseDeckCards,
+  countPausedCards,
   DECK_BROWSE_DEFAULT_COUNT,
   DECK_BROWSE_MAX_COUNT,
   fetchDecks,
@@ -45,6 +46,24 @@ const _describeMoreDueToday = (moreDueTodayCount: number): string =>
     ? ' That is everything due today.'
     : ` ${moreDueTodayCount} more card${moreDueTodayCount === 1 ? ' is' : 's are'} due today ` +
       'after these. Tell them so when you start, and offer another session once this one is done.';
+
+/**
+ * Tells the client that some cards never come up, and why.
+ *
+ * Reason: a learner whose plan ended holds more cards than it reviews. Without
+ * this, the words beyond the limit would silently stop appearing and a review
+ * could end looking like the day was done.
+ *
+ * @param pausedCount - Cards beyond their plan limit in the scope browsed
+ * @returns A sentence to follow the summary, or nothing when none are paused
+ */
+const _describePausedCards = (pausedCount: number): string =>
+  pausedCount === 0
+    ? ''
+    : ` ${pausedCount} of their card${pausedCount === 1 ? ' is' : 's are'} paused: they hold ` +
+      'more words than their plan reviews, so these are left out of every review but are ' +
+      'still theirs. Upgrading at inoh.app brings them back into review. Mention it once, ' +
+      'briefly, when the session runs out or they ask why a word never comes up.';
 
 /**
  * What to say when a selection comes back with nothing, which for `due` and
@@ -93,7 +112,8 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         `they have forgotten most often in review. Returns up to ${DECK_BROWSE_MAX_COUNT} cards ` +
         'with cardId, word, definition, which deck holds it, a link to the word page on ' +
         'inoh.app, and `isPrivate` — true for a card the user made, so describe it as theirs ' +
-        'rather than as an Inoh entry, and remember only those can be deleted or remade. Pass a ' +
+        'rather than as an Inoh entry, and remember only those can be deleted or remade. Cards ' +
+        'beyond their plan limit are paused and never come back from this tool. Pass a ' +
         'cardId to remove_card_from_deck or update_private_card to act on one. Reading the deck ' +
         'this way never changes a card or its review schedule; when they review, quiz them ' +
         'and record each answer with record_review. search_deck is what answers whether they ' +
@@ -130,17 +150,21 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         );
       }
 
-      const { cards, moreDueTodayCount } = await browseDeckCards(supabase, {
-        selection,
-        count,
-        deckId: chosenDeck?.id,
-      });
+      const [{ cards, moreDueTodayCount }, pausedCount] = await Promise.all([
+        browseDeckCards(supabase, { selection, count, deckId: chosenDeck?.id }),
+        countPausedCards(supabase, chosenDeck?.id),
+      ]);
+      const pausedNote = _describePausedCards(pausedCount);
       const results = cards.map((card) => toDeckCardResult(card, decks));
       const scope =
         chosenDeck === undefined ? 'any of their decks' : `their "${chosenDeck.name}" deck`;
 
       if (results.length === 0) {
-        return { content: [{ type: 'text', text: DESCRIBE_EMPTY_RESULT[selection](scope) }] };
+        return {
+          content: [
+            { type: 'text', text: `${DESCRIBE_EMPTY_RESULT[selection](scope)}${pausedNote}` },
+          ],
+        };
       }
 
       const capNote =
@@ -156,7 +180,7 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
             type: 'text',
             text:
               `${results.length} card(s) from ${scope}, ${SELECTION_SUMMARIES[selection]}.` +
-              `${capNote}\n${JSON.stringify(results, null, 2)}`,
+              `${capNote}${pausedNote}\n${JSON.stringify(results, null, 2)}`,
           },
         ],
       };

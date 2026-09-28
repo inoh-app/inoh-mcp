@@ -25,6 +25,12 @@ const _describeRefusal = (refusal: EdgeFunctionRefusal): string => {
         'That card is not in any of their decks, so there is no review progress to record. ' +
         'Only cards from their deck can be reviewed.'
       );
+    case 'REVIEW_PAUSED':
+      return (
+        'Reviews for this word are paused: they hold more words than their plan reviews. The ' +
+        'word is still theirs; upgrading at inoh.app brings it back into review. Move on to ' +
+        'the next card.'
+      );
     default:
       return refusal.error ?? 'The review could not be recorded.';
   }

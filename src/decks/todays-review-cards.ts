@@ -14,9 +14,12 @@ export const SESSION_DUE_CARDS_LIMIT = 10;
  */
 export const SESSION_NEW_CARDS_LIMIT = 5;
 
-/** The user's cards, narrowed to one deck when they named one. */
+/**
+ * The user's cards in review, narrowed to one deck when they named one.
+ * Paused cards are beyond their plan limit and wait for an upgrade (PRI-21123).
+ */
 const _selectDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
-  const query = supabase.from('user_cards').select(DECK_CARD_COLUMNS);
+  const query = supabase.from('user_cards').select(DECK_CARD_COLUMNS).eq('is_review_paused', false);
   return deckId === undefined ? query : query.eq('deck_id', deckId);
 };
 
@@ -78,8 +81,11 @@ export const fetchTodaysReviewSession = async (
   };
 };
 
-/** Counts the user's cards without reading them, narrowed to one deck when named. */
+/** Counts the user's cards in review without reading them, narrowed to one deck when named. */
 const _countDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
-  const query = supabase.from('user_cards').select('id', { count: 'exact', head: true });
+  const query = supabase
+    .from('user_cards')
+    .select('id', { count: 'exact', head: true })
+    .eq('is_review_paused', false);
   return deckId === undefined ? query : query.eq('deck_id', deckId);
 };

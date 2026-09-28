@@ -15,4 +15,5 @@ export {
   type DeckSelection,
 } from './browse-deck-cards.js';
 export { type DeckCard } from './deck-card.js';
+export { countPausedCards } from './paused-cards.js';
 export { DECK_SEARCH_RESULT_LIMIT, searchDeckCards } from './search-deck-cards.js';
