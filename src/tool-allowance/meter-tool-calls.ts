@@ -26,6 +26,23 @@ type AnyToolCallback = (...handlerArgs: unknown[]) => CallToolResult | Promise<C
 const UNMETERED_TOOL_NAMES = new Set(['check_account']);
 
 /**
+ * Whether a call deals today's review session, which is free too.
+ *
+ * Reason: the allowance is sold in 10-word sessions, so a session should cost
+ * exactly its 10 recorded answers. Dealing it again only returns the same
+ * session, so leaving it free gives nothing extra away.
+ *
+ * @param toolName - The tool being called
+ * @param toolArgs - Its arguments, as the SDK passed them
+ * @returns True for a browse_deck call that asks for today's session
+ */
+const _isTodaysSessionCall = (toolName: string, toolArgs: unknown): boolean =>
+  toolName === 'browse_deck' &&
+  typeof toolArgs === 'object' &&
+  toolArgs !== null &&
+  (toolArgs as { selection?: unknown }).selection === 'due';
+
+/**
  * Makes every tool registered on this server count against the user's weekly
  * allowance before it runs.
  *
@@ -43,20 +60,25 @@ export const meterToolCalls = (server: McpServer, connection: SupabaseConnection
     registerUnmeteredTool(
       name,
       config,
-      UNMETERED_TOOL_NAMES.has(name) ? callback : _meter(callback, connection),
+      UNMETERED_TOOL_NAMES.has(name) ? callback : _meter(name, callback, connection),
     )) as McpServer['registerTool'];
 };
 
 /**
  * Wraps one tool's handler so it runs only while the allowance lasts.
  *
+ * @param toolName - The tool's registered name
  * @param callback - The tool's own handler
  * @param connection - Supabase project the counter lives in
  * @returns A handler that counts, refuses once spent, and warns when nearly so
  */
 const _meter =
-  (callback: AnyToolCallback, connection: SupabaseConnection): AnyToolCallback =>
+  (toolName: string, callback: AnyToolCallback, connection: SupabaseConnection): AnyToolCallback =>
   async (...handlerArgs) => {
+    if (_isTodaysSessionCall(toolName, handlerArgs[0])) {
+      return callback(...handlerArgs);
+    }
+
     // Reason: the SDK passes (args, extra) to a tool with inputs and (extra)
     // to one without, so extra is always last.
     const extra = handlerArgs.at(-1) as ToolCallExtra;

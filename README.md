@@ -110,16 +110,15 @@ start another session if more words are ready.
 ## Your weekly allowance
 
 Your plan includes a weekly allowance of MCP tool calls. A tool call is one thing your AI assistant
-does in Inoh for you: taking today's session, recording one answer, adding or looking up a word.
-Recording each answer is one call and taking the session is one more, so a full session of 10
-words uses 11. Checking which account you're signed in as is free. The allowance resets on Monday
-at midnight where you are.
+does in Inoh for you: recording one answer, adding or looking up a word. Taking today's session and
+checking which account you're signed in as are free, so a full session of 10 words uses 10. The
+allowance resets on Monday at midnight where you are.
 
-| Plan | Tool calls a week | About                                       |
-| ---- | ----------------- | ------------------------------------------- |
-| Free | 50                | 3 review sessions a week (~6 reviews a day) |
-| Plus | 150               | a review session every day (~20 a day)      |
-| Pro  | 500               | several review sessions a day (~70 a day)   |
+| Plan | Tool calls a week | About                                         |
+| ---- | ----------------- | --------------------------------------------- |
+| Free | 35                | 3 review sessions a week, with 5 calls spare  |
+| Plus | 150               | 15 review sessions a week (about two a day)   |
+| Pro  | 500               | 50 review sessions a week (about seven a day) |
 
 Adding, searching and browsing use tool calls too. When only a few are left the AI mentions it, and
 once they're gone it tells you when they come back and where to upgrade.

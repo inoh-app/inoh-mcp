@@ -46,12 +46,13 @@ const APP_FALLBACK = 'You can keep reviewing in the Inoh app in the meantime.';
 /**
  * What the next plan up buys, said in review sessions rather than calls.
  *
- * Reason: a "call" means nothing to a learner. A session every day is what
- * Plus is sold on, so the refusal says so. Pro has nowhere to go.
+ * Reason: a "call" means nothing to a learner. The plans page sells each plan
+ * in 10-word sessions a week, so the refusal says the same. Pro has nowhere to
+ * go.
  */
 const NEXT_PLAN_PITCH: Record<string, string> = {
-  free: 'Inoh Plus covers a review session every day',
-  plus: 'Inoh Pro covers several review sessions a day',
+  free: 'Inoh Plus covers 15 review sessions with Claude a week',
+  plus: 'Inoh Pro covers 50 review sessions with Claude a week',
 };
 
 /**

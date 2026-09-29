@@ -74,7 +74,7 @@ If the user already confirmed that consequence for this card, proceed without as
 
 ## Respect usage limits
 
-Every tool call except `check_account` uses the account's weekly MCP allowance. Take a review
-set once and record each answer without extra lookups. Creating or remaking private cards also
+Every tool call except `check_account` and `browse_deck` with `selection: "due"` uses the
+account's weekly MCP allowance. Take a review set once and record each answer without extra lookups. Creating or remaking private cards also
 uses a monthly generation allowance. Follow the server's current allowance and reset messages;
 do not invent limits, claim success after a refusal, or keep retrying an exhausted allowance.
