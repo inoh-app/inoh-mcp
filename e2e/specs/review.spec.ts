@@ -116,8 +116,8 @@ describe('finishing the day', () => {
     const result = await connection.callTool('browse_deck', { selection: 'due' });
     expect(textOf(result)).toContain("Today's streak goal is complete");
     expect(textOf(result)).toContain('selection `random` for optional practice');
-    // Reason: the learner deck is five cards, well under the fifteen a streak
-    // day asks for, so this is the "nothing left today" half of the rule. The
+    // Reason: the learner deck is five cards, under the ten a streak day asks
+    // for, so reviewing every ready word is what earns the day. The
     // fixture's streak last counted yesterday, so today's makes it one longer.
     expect(await readCurrentStreak()).toBe(streakBefore + 1);
   });

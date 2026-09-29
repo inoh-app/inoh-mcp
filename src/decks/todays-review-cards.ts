@@ -1,18 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { DECK_CARD_COLUMNS, toDeckCards, type DeckCard } from './deck-card.js';
+import { planReviewSession, SESSION_CARDS_LIMIT } from './review-session-plan.js';
 import { fetchUserTimezone, findStartOfTomorrow } from './user-day.js';
-
-/**
- * Cards already in review that one session takes, most overdue first.
- * Mirrors SESSION_DUE_CARDS_LIMIT in the app (src/constants/deck.ts).
- */
-export const SESSION_DUE_CARDS_LIMIT = 10;
-
-/**
- * Never-reviewed cards that one session takes.
- * Mirrors SESSION_NEW_CARDS_LIMIT in the app (src/constants/deck.ts).
- */
-export const SESSION_NEW_CARDS_LIMIT = 5;
 
 /**
  * The user's cards in review, narrowed to one deck when they named one.
@@ -41,9 +30,10 @@ export interface TodaysReviewSession {
  * Reason: "due today" rather than "due right now". FSRS schedules to the
  * minute, so a strict `now` filter trickles cards in through the day instead
  * of handing over the day's reviews at once, and it would never offer a new
- * card at all. The limits are the app's, so a session in an AI client and one
- * in the app are the same size. The full due count comes along so the learner
- * hears that a session of ten is not the whole day when more are waiting.
+ * card at all. The session is split by planReviewSession, the app's rule, so a
+ * session in an AI client and one in the app are the same. The full due count
+ * comes along so the learner hears that one session is not the whole day when
+ * more are waiting.
  *
  * @param supabase - Client acting as the signed-in user
  * @param deckId - One deck to review, or undefined for all of them
@@ -61,11 +51,11 @@ export const fetchTodaysReviewSession = async (
     _selectDeckCards(supabase, deckId)
       .lt('next_review', startOfTomorrow)
       .order('next_review', { ascending: true })
-      .limit(SESSION_DUE_CARDS_LIMIT),
+      .limit(SESSION_CARDS_LIMIT),
     _selectDeckCards(supabase, deckId)
       .is('next_review', null)
       .order('created_at', { ascending: true })
-      .limit(SESSION_NEW_CARDS_LIMIT),
+      .limit(SESSION_CARDS_LIMIT),
     _countDeckCards(supabase, deckId).lt('next_review', startOfTomorrow),
     _countDeckCards(supabase, deckId).is('next_review', null),
   ]);
@@ -76,10 +66,16 @@ export const fetchTodaysReviewSession = async (
     throw new Error(`Could not read the user's deck: ${error.message}`);
   }
 
+  // Reason: each read takes a full session's worth, the most either side can
+  // need, and the counts decide how many of each the session keeps.
+  const scheduledDueCardCount = dueCountResponse.count ?? 0;
+  const newCardCount = newCountResponse.count ?? 0;
+  const sessionPlan = planReviewSession(scheduledDueCardCount, newCardCount);
+
   return {
-    dueCards: toDeckCards(dueResponse.data),
-    newCards: toDeckCards(newResponse.data),
-    dueTodayCount: (dueCountResponse.count ?? 0) + (newCountResponse.count ?? 0),
+    dueCards: toDeckCards(dueResponse.data).slice(0, sessionPlan.scheduledCardCount),
+    newCards: toDeckCards(newResponse.data).slice(0, sessionPlan.newCardCount),
+    dueTodayCount: scheduledDueCardCount + newCardCount,
   };
 };
 

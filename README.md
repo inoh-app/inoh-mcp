@@ -94,23 +94,25 @@ sentence. After each answer it judges how well you remembered it (you had it, yo
 you didn't) and `record_review` saves that straight away, so stopping halfway loses nothing.
 
 A review here counts exactly like one in the app. The word is scheduled by the same rules and won't
-come back until it is due again. Today's streak goal is 15 distinct words across all decks and clients,
-or every word ready for review if fewer than 15 are ready. New cards are ready immediately. A
+come back until it is due again. Today's streak goal is 10 distinct words across all decks and clients,
+or every word ready for review if fewer than 10 are ready. New cards are ready immediately. A
 one-word deck session does not finish the goal when other decks have words to review. The MCP server
 reports goal progress after each answer and offers another session when words remain.
 
 When nothing is ready to review, an existing streak stays at the same count. The server says so and
 offers random words for optional practice; that practice does not raise the streak.
 
-A session is up to 15 words: five new ones and ten scheduled ones. When the goal is complete, the
-learner can still start another session if more words are ready.
+A session is up to 10 words, the same session the app deals: at least three new words when there
+are any, scheduled words for the rest, and no new words while more than 20 scheduled words are
+due, so a learner who is behind catches up first. When the goal is complete, the learner can still
+start another session if more words are ready.
 
 ## Your weekly allowance
 
 Your plan includes a weekly allowance of MCP tool calls. A tool call is one thing your AI assistant
 does in Inoh for you: taking today's session, recording one answer, adding or looking up a word.
-Recording each answer is one call and taking the session is one more, so a full session of 15
-words uses 16. Checking which account you're signed in as is free. The allowance resets on Monday
+Recording each answer is one call and taking the session is one more, so a full session of 10
+words uses 11. Checking which account you're signed in as is free. The allowance resets on Monday
 at midnight where you are.
 
 | Plan | Tool calls a week | About                                       |

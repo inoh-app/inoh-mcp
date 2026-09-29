@@ -53,8 +53,8 @@ export interface DeckBrowseRequest {
 export interface DeckBrowseResult {
   cards: DeckCard[];
   /**
-   * Cards due today that this session left out. Set only for `due`, where a
-   * session of ten is not the whole day when more are waiting.
+   * Cards due today that this session left out. Set only for `due`, where one
+   * session is not the whole day when more are waiting.
    */
   moreDueTodayCount?: number;
 }
