@@ -71,7 +71,7 @@ export const registerAddCardToDeckTool = (
         'when the dictionary does not have the word, since a public dictionary card is better ' +
         "than a generated duplicate. It also re-adds a card from the user's own private " +
         'dictionary that they had taken out of their deck. Adding costs nothing against the monthly private card allowance, though ' +
-        'each plan counts each distinct word once. Review progress is shared across decks.',
+        'each deck placement takes one plan card slot. Review progress is shared across decks.',
       inputSchema: {
         word: z
           .string()

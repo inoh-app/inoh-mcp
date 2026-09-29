@@ -47,7 +47,7 @@ const _describePausedCards = (pausedCount: number): string =>
   pausedCount === 0
     ? ''
     : ` ${pausedCount} of their card${pausedCount === 1 ? ' is' : 's are'} paused: they hold ` +
-      'more words than their plan reviews, so these are left out of every review but are ' +
+      'more cards than their plan reviews, so these are left out of every review but are ' +
       'still theirs. Upgrading at inoh.app brings them back into review. Mention it once, ' +
       'briefly, when the session runs out or they ask why a word never comes up.';
 

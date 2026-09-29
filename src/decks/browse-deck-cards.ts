@@ -73,7 +73,10 @@ const _selectDeckCards = (
 ) => {
   // Reason: every selection here feeds practice, and paused cards are out of
   // every review until the user upgrades (PRI-21123).
-  const query = supabase.from('user_cards').select(columns).eq('is_review_paused', false);
+  const query = supabase
+    .from('user_cards')
+    .select(columns)
+    .eq('user_card_decks.is_review_paused', false);
 
   return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };
@@ -140,7 +143,7 @@ const _fetchDeckCardIds = async (
     const { data, error } = await _selectDeckCards(
       supabase,
       deckId,
-      'id, user_card_decks!inner(deck_id)',
+      'id, user_card_decks!inner(deck_id, is_review_paused)',
     )
       .order('id', { ascending: true })
       .range(pageStart, pageStart + pageSize - 1);

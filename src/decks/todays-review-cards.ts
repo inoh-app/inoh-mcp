@@ -8,7 +8,10 @@ import { fetchUserTimezone, findStartOfTomorrow } from './user-day.js';
  * Paused cards are beyond their plan limit and wait for an upgrade (PRI-21123).
  */
 const _selectDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
-  const query = supabase.from('user_cards').select(DECK_CARD_COLUMNS).eq('is_review_paused', false);
+  const query = supabase
+    .from('user_cards')
+    .select(DECK_CARD_COLUMNS)
+    .eq('user_card_decks.is_review_paused', false);
   return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };
 
@@ -83,10 +86,10 @@ export const fetchTodaysReviewSession = async (
 const _countDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
   const query = supabase
     .from('user_cards')
-    .select('id, user_card_decks!inner(deck_id)', {
+    .select('id, user_card_decks!inner(deck_id, is_review_paused)', {
       count: 'exact',
       head: true,
     })
-    .eq('is_review_paused', false);
+    .eq('user_card_decks.is_review_paused', false);
   return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };

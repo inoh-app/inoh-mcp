@@ -8,9 +8,10 @@ while you are talking to it.
 Ask for a word you just met in an article and it becomes a card with a definition, an example
 sentence, audio, an image and quiz options, ready to review in the Inoh app on your phone.
 
-A word can sit in several decks. Its review progress is shared, and it counts once toward the
-account's plan limit. Removing it from one deck keeps that progress while another deck still
-contains it. Deploy the `inoh-backend` multi-deck migration before deploying this server.
+A word can sit in several decks. Its review progress is shared, and each deck placement counts
+as one card toward the account's plan limit. Removing it from one deck keeps that progress while
+another deck still contains it. Deploy the related `inoh-backend` migrations before deploying this
+server.
 
 ```
 https://mcp.inoh.app/mcp
