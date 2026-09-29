@@ -91,12 +91,15 @@ describe('a random handful', () => {
 });
 
 describe("today's review session", () => {
-  it('deals the cards due today first, then the ones never reviewed, as the app does', async () => {
+  it('deals new cards first, then scheduled cards, as the app does', async () => {
     const session = await browse({ selection: 'due', count: 20 });
-    const dueCount = account.dueWords.length;
+    const newCount = account.cardCount - account.dueWords.length;
 
     expect(session).toHaveLength(account.cardCount);
-    expect(new Set(session.slice(0, dueCount).map((card) => card.word))).toEqual(
+    expect(session.slice(0, newCount).every((card) => !account.dueWords.includes(card.word))).toBe(
+      true,
+    );
+    expect(new Set(session.slice(newCount).map((card) => card.word))).toEqual(
       new Set(account.dueWords),
     );
   });

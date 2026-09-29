@@ -60,10 +60,10 @@ afterAll(async () => {
 });
 
 describe("today's session", () => {
-  it('says when it holds everything due today', async () => {
+  it('explains the daily streak goal', async () => {
     const result = await connection.callTool('browse_deck', { selection: 'due', count: 20 });
 
-    expect(textOf(result)).toContain('That is everything due today.');
+    expect(textOf(result)).toContain("Today's streak goal:");
   });
 });
 
@@ -78,6 +78,7 @@ describe('recording an answer', () => {
 
     expect(result.isError).not.toBe(true);
     expect(textOf(result)).toContain('Recorded.');
+    expect(textOf(result)).toContain("Today's streak goal: 1/5");
     const remaining = await fetchSession();
     expect(remaining.map((card) => card.cardId)).not.toContain(firstCard?.cardId);
   });
@@ -113,7 +114,8 @@ describe('finishing the day', () => {
     }
 
     const result = await connection.callTool('browse_deck', { selection: 'due' });
-    expect(textOf(result)).toContain('That is the day done');
+    expect(textOf(result)).toContain("Today's streak goal is complete");
+    expect(textOf(result)).toContain('selection `random` for optional practice');
     // Reason: the learner deck is five cards, well under the fifteen a streak
     // day asks for, so this is the "nothing left today" half of the rule. The
     // fixture's streak last counted yesterday, so today's makes it one longer.

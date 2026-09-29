@@ -215,10 +215,10 @@ export const browseDeckCards = async (
 
   if (selection === 'due') {
     const { dueCards, newCards, dueTodayCount } = await fetchTodaysReviewSession(supabase, deckId);
-    const shownDueCount = Math.min(dueCards.length, count);
+    const cards = [...newCards, ...dueCards].slice(0, count);
     return {
-      cards: [...dueCards, ...newCards].slice(0, count),
-      moreDueTodayCount: dueTodayCount - shownDueCount,
+      cards,
+      moreDueTodayCount: dueTodayCount - cards.length,
     };
   }
 

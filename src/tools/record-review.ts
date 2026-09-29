@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as z from 'zod/v4';
 import { getUserAccessToken } from '../auth/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
+import { describeDailyStreakGoal, fetchDailyStreakGoal } from '../decks/index.js';
 import { readEdgeFunctionRefusal, type EdgeFunctionRefusal } from './edge-function-refusal.js';
 import { buildToolError } from './tool-result.js';
 
@@ -95,12 +96,15 @@ export const registerRecordReviewTool = (
     async ({ cardId, recall }, extra) => {
       const supabase = createUserSupabaseClient(connection, getUserAccessToken(extra.authInfo));
 
-      const { error } = await supabase.functions.invoke(RECORD_REVIEW_FUNCTION, {
-        // Reason: one call is one answer, so each gets its own id. The
-        // server's duplicate check cannot tell a model that calls twice for
-        // one answer from two answers; the description is what guards that.
-        body: { dictionary_id: cardId, review_id: randomUUID(), source: 'mcp', recall },
-      });
+      const { data, error } = await supabase.functions.invoke<{ status: string }>(
+        RECORD_REVIEW_FUNCTION,
+        {
+          // Reason: one call is one answer, so each gets its own id. The
+          // server's duplicate check cannot tell a model that calls twice for
+          // one answer from two answers; the description is what guards that.
+          body: { dictionary_id: cardId, review_id: randomUUID(), source: 'mcp', recall },
+        },
+      );
 
       if (error) {
         const refusal = await readEdgeFunctionRefusal(error);
@@ -110,10 +114,15 @@ export const registerRecordReviewTool = (
         throw new Error(`Could not record the review: ${error.message}`);
       }
 
+      if (data?.status === 'duplicate') {
+        return { content: [{ type: 'text', text: 'This answer was already recorded.' }] };
+      }
+      const goal = await fetchDailyStreakGoal(supabase);
+
       // Reason: the next review date is left out on purpose. Handed a date,
       // the model announced it after every answer ("It comes back tomorrow"),
       // which the learner does not need; the app keeps the schedule for them.
-      return { content: [{ type: 'text', text: 'Recorded.' }] };
+      return { content: [{ type: 'text', text: `Recorded. ${describeDailyStreakGoal(goal)}` }] };
     },
   );
 };

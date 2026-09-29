@@ -20,7 +20,7 @@ afterAll(async () => {
 });
 
 for (const plan of ['free', 'plus', 'pro'] as const) {
-  it(`records the ${plan} account's 51st review and keeps its history and streak`, async () => {
+  it(`records the ${plan} account's 51st review without awarding an unearned streak day`, async () => {
     resetAccount({ email: TEST_ACCOUNT_EMAIL, plan, studiedToday: 50 });
     const session = await signInWithEmailCode(TEST_ACCOUNT_EMAIL);
     const connection = await connectWithToken(server.mcpUrl, session.accessToken);
@@ -58,7 +58,9 @@ for (const plan of ['free', 'plus', 'pro'] as const) {
         .select('current_streak')
         .single();
       expect(finalStreakError).toBeNull();
-      expect(streakAfter?.current_streak).toBe(streakBefore!.current_streak + 1);
+      // The fixture marks 50 cards as studied but has no qualifying history;
+      // this one distinct due-word review alone does not finish today's goal.
+      expect(streakAfter?.current_streak).toBe(streakBefore!.current_streak);
     } finally {
       await connection.close();
     }

@@ -6,6 +6,8 @@ import {
   countPausedCards,
   DECK_BROWSE_DEFAULT_COUNT,
   DECK_BROWSE_MAX_COUNT,
+  describeDailyStreakGoal,
+  fetchDailyStreakGoal,
   fetchDecks,
   findDeckByName,
   listDeckNames,
@@ -21,8 +23,7 @@ const SELECTION_SUMMARIES: Record<DeckSelection, string> = {
   newest: 'the most recently added first',
   oldest: 'the longest-held first',
   due:
-    "in today's review session: the ones due today, most overdue first, then a few they " +
-    'have never reviewed. Quiz them one card at a time and record each answer with ' +
+    "in today's review session. Quiz them one card at a time and record each answer with " +
     'record_review as soon as they give it',
   struggling: 'the ones they forget most often first',
 };
@@ -31,21 +32,6 @@ const SELECTION_SUMMARIES: Record<DeckSelection, string> = {
 const _describeEmptyDeck = (scope: string): string =>
   `There are no cards in ${scope} yet. search_dictionary finds words to learn, and ` +
   'add_card_to_deck puts one in a deck.';
-
-/**
- * Tells the client whether today's session is the whole day.
- *
- * Reason: a session stops at ten due cards, the app's size, so a learner with
- * forty due would otherwise finish it believing the day was done.
- *
- * @param moreDueTodayCount - Cards due today that the session left out
- * @returns A sentence to follow the session summary
- */
-const _describeMoreDueToday = (moreDueTodayCount: number): string =>
-  moreDueTodayCount === 0
-    ? ' That is everything due today.'
-    : ` ${moreDueTodayCount} more card${moreDueTodayCount === 1 ? ' is' : 's are'} due today ` +
-      'after these. Tell them so when you start, and offer another session once this one is done.';
 
 /**
  * Tells the client that some cards never come up, and why.
@@ -73,9 +59,7 @@ const DESCRIBE_EMPTY_RESULT: Record<DeckSelection, (scope: string) => string> = 
   random: _describeEmptyDeck,
   newest: _describeEmptyDeck,
   oldest: _describeEmptyDeck,
-  due: (scope) =>
-    `Nothing in ${scope} is left to review today — no card is due and none is waiting for a ` +
-    'first review. That is the day done.',
+  due: (scope) => `Nothing in ${scope} is ready for review today.`,
   struggling: (scope) =>
     `No card in ${scope} has been forgotten in a review yet, so there is nothing they are ` +
     'struggling with.',
@@ -106,8 +90,8 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         '"give me ten random words from my deck", "what have I added lately?", "what should I ' +
         'review today?" and "which words do I keep forgetting?". `selection` picks which cards ' +
         'come back: `random` for a fresh draw every call, `newest` or `oldest` by when they ' +
-        "added the card, `due` for today's review session (the cards due by the end of their " +
-        'day, then a few they have never reviewed, the same session the app would deal), ' +
+        "added the card, `due` for today's review session (new cards and cards scheduled by " +
+        'the end of their day, the same session the app would deal), ' +
         '`struggling` for the ones ' +
         `they have forgotten most often in review. Returns up to ${DECK_BROWSE_MAX_COUNT} cards ` +
         'with cardId, word, definition, which deck holds it, a link to the word page on ' +
@@ -150,9 +134,10 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         );
       }
 
-      const [{ cards, moreDueTodayCount }, pausedCount] = await Promise.all([
+      const [{ cards, moreDueTodayCount }, pausedCount, dailyGoal] = await Promise.all([
         browseDeckCards(supabase, { selection, count, deckId: chosenDeck?.id }),
         countPausedCards(supabase, chosenDeck?.id),
+        selection === 'due' ? fetchDailyStreakGoal(supabase) : Promise.resolve(null),
       ]);
       const pausedNote = _describePausedCards(pausedCount);
       const results = cards.map((card) => toDeckCardResult(card, decks));
@@ -160,19 +145,43 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
         chosenDeck === undefined ? 'any of their decks' : `their "${chosenDeck.name}" deck`;
 
       if (results.length === 0) {
+        const goalNote = dailyGoal ? ` ${describeDailyStreakGoal(dailyGoal)}` : '';
+        const otherDeckNote =
+          selection === 'due' && chosenDeck !== undefined && dailyGoal?.has_more_to_review
+            ? ' Omit deckName to review ready words from other decks.'
+            : '';
+        const hasRandomWords =
+          selection === 'due' && !dailyGoal?.has_more_to_review
+            ? (
+                await browseDeckCards(supabase, {
+                  selection: 'random',
+                  count: 1,
+                  deckId: chosenDeck?.id,
+                })
+              ).cards.length > 0
+            : false;
+        const practiceNote = hasRandomWords
+          ? ' Use browse_deck with selection `random` for optional practice.'
+          : '';
         return {
           content: [
-            { type: 'text', text: `${DESCRIBE_EMPTY_RESULT[selection](scope)}${pausedNote}` },
+            {
+              type: 'text',
+              text: `${DESCRIBE_EMPTY_RESULT[selection](scope)}${goalNote}${otherDeckNote}${practiceNote}${pausedNote}`,
+            },
           ],
         };
       }
 
       const capNote =
         moreDueTodayCount !== undefined
-          ? _describeMoreDueToday(moreDueTodayCount)
+          ? moreDueTodayCount > 0
+            ? ' More words are available after this session.'
+            : ''
           : results.length === count
             ? ' That is as many as they asked for; there may be more.'
             : '';
+      const goalNote = dailyGoal ? ` ${describeDailyStreakGoal(dailyGoal)}` : '';
 
       return {
         content: [
@@ -180,7 +189,7 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
             type: 'text',
             text:
               `${results.length} card(s) from ${scope}, ${SELECTION_SUMMARIES[selection]}.` +
-              `${capNote}${pausedNote}\n${JSON.stringify(results, null, 2)}`,
+              `${capNote}${goalNote}${pausedNote}\n${JSON.stringify(results, null, 2)}`,
           },
         ],
       };

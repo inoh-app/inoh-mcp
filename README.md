@@ -82,9 +82,8 @@ forgives a typo the same way the app's search does, and it tells you which deck 
 
 `browse_deck` is the one to reach for when there is no word to search for. Ask for a random
 handful and you get a different draw every time; ask for the newest or the oldest and you get
-them in the order you added them; ask what is due and you get today's review session, the same one
-the app would deal: the words due by the end of your day, most overdue first, then a few you have
-never reviewed; ask what you keep forgetting and you get the cards you have missed in review, the
+them in the order you added them; ask what to review and you get today's review session, the same one
+the app would deal: new cards and words scheduled by the end of your day; ask what you keep forgetting and you get the cards you have missed in review, the
 worst first. Reading your deck this way never touches a card's review schedule.
 
 ## Reviewing in a conversation
@@ -95,13 +94,16 @@ sentence. After each answer it judges how well you remembered it (you had it, yo
 you didn't) and `record_review` saves that straight away, so stopping halfway loses nothing.
 
 A review here counts exactly like one in the app. The word is scheduled by the same rules and won't
-come back until it is due again. Each review counts toward your streak: a day counts once you have
-reviewed 15 words, across the app and every AI client together,
-or once you have finished the day's session, with nothing already due left and five new words (or
-all you have) done.
+come back until it is due again. Today's streak goal is 15 distinct words across all decks and clients,
+or every word ready for review if fewer than 15 are ready. New cards are ready immediately. A
+one-word deck session does not finish the goal when other decks have words to review. The MCP server
+reports goal progress after each answer and offers another session when words remain.
 
-A session is up to 15 words: the ten most overdue, then five new ones. When more are due than one
-session holds, the AI says so and can start another once you finish.
+When nothing is ready to review, an existing streak stays at the same count. The server says so and
+offers random words for optional practice; that practice does not raise the streak.
+
+A session is up to 15 words: five new ones and ten scheduled ones. When the goal is complete, the
+learner can still start another session if more words are ready.
 
 ## Your weekly allowance
 

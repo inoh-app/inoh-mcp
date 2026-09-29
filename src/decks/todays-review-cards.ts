@@ -29,7 +29,7 @@ export interface TodaysReviewSession {
   dueCards: DeckCard[];
   /** Never-reviewed cards the session adds after the due ones. */
   newCards: DeckCard[];
-  /** Every card due by the end of the day, including those past the session's limit. */
+  /** Every eligible card due by the end of the day, including new cards. */
   dueTodayCount: number;
 }
 
@@ -57,7 +57,7 @@ export const fetchTodaysReviewSession = async (
   const timezone = await fetchUserTimezone(supabase);
   const startOfTomorrow = findStartOfTomorrow(timezone, new Date()).toISOString();
 
-  const [dueResponse, newResponse, dueCountResponse] = await Promise.all([
+  const [dueResponse, newResponse, dueCountResponse, newCountResponse] = await Promise.all([
     _selectDeckCards(supabase, deckId)
       .lt('next_review', startOfTomorrow)
       .order('next_review', { ascending: true })
@@ -67,9 +67,11 @@ export const fetchTodaysReviewSession = async (
       .order('created_at', { ascending: true })
       .limit(SESSION_NEW_CARDS_LIMIT),
     _countDeckCards(supabase, deckId).lt('next_review', startOfTomorrow),
+    _countDeckCards(supabase, deckId).is('next_review', null),
   ]);
 
-  const error = dueResponse.error ?? newResponse.error ?? dueCountResponse.error;
+  const error =
+    dueResponse.error ?? newResponse.error ?? dueCountResponse.error ?? newCountResponse.error;
   if (error) {
     throw new Error(`Could not read the user's deck: ${error.message}`);
   }
@@ -77,7 +79,7 @@ export const fetchTodaysReviewSession = async (
   return {
     dueCards: toDeckCards(dueResponse.data),
     newCards: toDeckCards(newResponse.data),
-    dueTodayCount: dueCountResponse.count ?? 0,
+    dueTodayCount: (dueCountResponse.count ?? 0) + (newCountResponse.count ?? 0),
   };
 };
 
