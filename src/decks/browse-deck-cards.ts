@@ -75,7 +75,7 @@ const _selectDeckCards = (
   // every review until the user upgrades (PRI-21123).
   const query = supabase.from('user_cards').select(columns).eq('is_review_paused', false);
 
-  return deckId === undefined ? query : query.eq('deck_id', deckId);
+  return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };
 
 /**
@@ -137,7 +137,11 @@ const _fetchDeckCardIds = async (
   while (ids.length < RANDOM_POOL_LIMIT) {
     const pageStart = ids.length;
     const pageSize = Math.min(ID_PAGE_SIZE, RANDOM_POOL_LIMIT - pageStart);
-    const { data, error } = await _selectDeckCards(supabase, deckId, 'id')
+    const { data, error } = await _selectDeckCards(
+      supabase,
+      deckId,
+      'id, user_card_decks!inner(deck_id)',
+    )
       .order('id', { ascending: true })
       .range(pageStart, pageStart + pageSize - 1);
 
@@ -181,10 +185,10 @@ const _drawRandomDeckCards = async (
     return [];
   }
 
-  const { data, error } = await supabase
-    .from('user_cards')
-    .select(DECK_CARD_COLUMNS)
-    .in('id', drawnIds);
+  const { data, error } = await _selectDeckCards(supabase, deckId, DECK_CARD_COLUMNS).in(
+    'id',
+    drawnIds,
+  );
 
   if (error) {
     throw new Error(`Could not read the user's deck: ${error.message}`);

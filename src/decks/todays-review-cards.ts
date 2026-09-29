@@ -9,7 +9,7 @@ import { fetchUserTimezone, findStartOfTomorrow } from './user-day.js';
  */
 const _selectDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
   const query = supabase.from('user_cards').select(DECK_CARD_COLUMNS).eq('is_review_paused', false);
-  return deckId === undefined ? query : query.eq('deck_id', deckId);
+  return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };
 
 /** Today's review session, and how many cards are due today in all. */
@@ -83,7 +83,10 @@ export const fetchTodaysReviewSession = async (
 const _countDeckCards = (supabase: SupabaseClient, deckId: string | undefined) => {
   const query = supabase
     .from('user_cards')
-    .select('id', { count: 'exact', head: true })
+    .select('id, user_card_decks!inner(deck_id)', {
+      count: 'exact',
+      head: true,
+    })
     .eq('is_review_paused', false);
-  return deckId === undefined ? query : query.eq('deck_id', deckId);
+  return deckId === undefined ? query : query.eq('user_card_decks.deck_id', deckId);
 };

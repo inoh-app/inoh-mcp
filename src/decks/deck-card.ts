@@ -18,10 +18,10 @@ export interface DeckCard extends DictionaryCard {
  * blanked out on the ones that do not match.
  */
 export const DECK_CARD_COLUMNS =
-  'deck_id, is_review_paused, dictionary!inner(id, word, definition, owner_user_id)';
+  'is_review_paused, user_card_decks!inner(deck_id), dictionary!inner(id, word, definition, owner_user_id)';
 
 interface DeckCardRow {
-  deck_id: string;
+  user_card_decks: { deck_id: string }[];
   is_review_paused: boolean;
   dictionary: {
     id: string;
@@ -38,8 +38,15 @@ interface DeckCardRow {
  * @returns One card per row, the dictionary entry flattened into it
  */
 export const toDeckCards = (rows: unknown): DeckCard[] =>
-  ((rows ?? []) as DeckCardRow[]).map((row) => ({
-    ...row.dictionary,
-    deckId: row.deck_id,
-    isReviewPaused: row.is_review_paused,
-  }));
+  ((rows ?? []) as DeckCardRow[]).flatMap((row) => {
+    const membership = row.user_card_decks[0];
+    return membership
+      ? [
+          {
+            ...row.dictionary,
+            deckId: membership.deck_id,
+            isReviewPaused: row.is_review_paused,
+          },
+        ]
+      : [];
+  });

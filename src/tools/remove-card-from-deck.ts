@@ -3,10 +3,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import * as z from 'zod/v4';
 import { getUserAccessToken } from '../auth/index.js';
 import { MAX_WORD_LENGTH } from '../constants.js';
-import { fetchDecks } from '../decks/index.js';
+import { describeMissingDeck, fetchDecks, findDeckByName } from '../decks/index.js';
 import { findCardById, findCardsByWord, type DictionaryCard } from '../dictionary/index.js';
 import { createUserSupabaseClient, type SupabaseConnection } from '../supabase/index.js';
-import { buildCardChoiceQuestion, requireOneCardSelector } from './card-selection.js';
+import { requireOneCardSelector } from './card-selection.js';
 import { buildToolError } from './tool-result.js';
 
 /** A card that is both in the dictionary and in one of the user's decks. */
@@ -29,7 +29,7 @@ const _keepCardsInDecks = async (
   // RLS scopes user_cards to the caller, so these can only be their own rows.
   const { data, error } = await supabase
     .from('user_cards')
-    .select('id, dictionary_id, deck_id')
+    .select('id, dictionary_id, user_card_decks!inner(deck_id)')
     .in(
       'dictionary_id',
       cards.map((card) => card.id),
@@ -39,11 +39,21 @@ const _keepCardsInDecks = async (
     throw new Error(`Could not check the user's decks: ${error.message}`);
   }
 
-  const rows = (data ?? []) as { id: string; dictionary_id: string; deck_id: string }[];
+  const rows = (data ?? []) as {
+    id: string;
+    dictionary_id: string;
+    user_card_decks: { deck_id: string }[];
+  }[];
 
   return rows.flatMap((row) => {
     const card = cards.find((candidate) => candidate.id === row.dictionary_id);
-    return card === undefined ? [] : [{ ...card, userCardId: row.id, deckId: row.deck_id }];
+    return card === undefined
+      ? []
+      : row.user_card_decks.map((membership) => ({
+          ...card,
+          userCardId: row.id,
+          deckId: membership.deck_id,
+        }));
   });
 };
 
@@ -73,11 +83,11 @@ export const registerRemoveCardFromDeckTool = (
       },
       description:
         "Takes a card out of the signed-in user's deck so it stops coming up in reviews. " +
-        'Nothing is destroyed: a public dictionary card stays in the dictionary for everyone, ' +
-        'and a card the user made stays in their own private dictionary, ready to add back. ' +
-        'Identify it by `word` or by `cardId`. Their review progress for the card is lost and ' +
-        'adding it back later starts it over, so confirm with the user first — in those terms, ' +
-        'about the card and the progress, never by naming a tool. Deleting a card the user ' +
+        'A public dictionary entry stays available to everyone, and a card the user made ' +
+        'stays in their private dictionary, ready to add back. ' +
+        'Identify it by `word` or by `cardId`, and name the deck when the word is in several. ' +
+        'Progress stays while another deck contains the word; removing its last membership ' +
+        'loses progress, so confirm that with the user first. Deleting a card the user ' +
         'made, image and audio and all, is a different and permanent thing, which ' +
         'delete_private_card does.',
       inputSchema: {
@@ -93,9 +103,10 @@ export const registerRemoveCardFromDeckTool = (
           .uuid()
           .optional()
           .describe('The card id, as returned by search_dictionary. Use this or word.'),
+        deckName: z.string().trim().min(1).optional().describe('Deck to remove the card from.'),
       },
     },
-    async ({ word, cardId }, extra) => {
+    async ({ word, cardId, deckName }, extra) => {
       const selectorProblem = requireOneCardSelector(word, cardId);
       if (selectorProblem !== null) {
         return buildToolError(selectorProblem);
@@ -117,40 +128,46 @@ export const registerRemoveCardFromDeckTool = (
       }
 
       const cardsInDecks = await _keepCardsInDecks(supabase, candidates);
+      const decks = await fetchDecks(supabase);
+      const targetDeck = deckName === undefined ? undefined : findDeckByName(decks, deckName);
+      if (deckName !== undefined && targetDeck === undefined) {
+        return buildToolError(describeMissingDeck(deckName, decks));
+      }
+      const matchingCards = targetDeck
+        ? cardsInDecks.filter((candidate) => candidate.deckId === targetDeck.id)
+        : cardsInDecks;
 
-      if (cardsInDecks.length === 0) {
+      if (matchingCards.length === 0) {
         return buildToolError(`${describeCard} is not in the user's deck, so nothing was removed.`);
       }
 
-      if (cardsInDecks.length > 1) {
+      if (matchingCards.length > 1) {
+        const deckChoices = matchingCards.map((candidate) => {
+          const deck = decks.find((item) => item.id === candidate.deckId);
+          return `${candidate.word} in ${deck?.name ?? 'a deck'}`;
+        });
         return buildToolError(
-          `The user has ${cardsInDecks.length} cards for "${word ?? cardsInDecks[0]?.word}". ` +
-            buildCardChoiceQuestion(cardsInDecks),
+          `Several matches remain: ${deckChoices.join(', ')}. ` + 'Specify cardId and deckName.',
         );
       }
 
-      const [card] = cardsInDecks;
+      const [card] = matchingCards;
       if (card === undefined) {
         return buildToolError('Could not work out which card to remove.');
       }
 
-      const { data, error } = await supabase
-        .from('user_cards')
-        .delete()
-        .eq('id', card.userCardId)
-        .select('id');
+      const hasAnotherDeck = cardsInDecks.some(
+        (candidate) => candidate.userCardId === card.userCardId && candidate.deckId !== card.deckId,
+      );
+      const { error } = await supabase.rpc('remove_words_from_deck', {
+        p_card_ids: [card.userCardId],
+        p_deck_id: card.deckId,
+      });
 
       if (error) {
         throw new Error(`Could not remove the card: ${error.message}`);
       }
 
-      if ((data ?? []).length === 0) {
-        return buildToolError(
-          `"${card.word}" was no longer in the user's deck by the time it was removed.`,
-        );
-      }
-
-      const decks = await fetchDecks(supabase);
       const deck = decks.find((candidate) => candidate.id === card.deckId);
       const deckLabel = deck === undefined ? 'their deck' : `their "${deck.name}" deck`;
       const whereItRemains =
@@ -164,7 +181,9 @@ export const registerRemoveCardFromDeckTool = (
             type: 'text',
             text:
               `Removed "${card.word}" from ${deckLabel}. ${whereItRemains}, so it can be added ` +
-              'back at any time, but the review progress for it is gone.',
+              (hasAnotherDeck
+                ? 'back at any time. Its review progress stays because another deck still contains it.'
+                : 'back at any time, but its review progress is gone.'),
           },
         ],
       };

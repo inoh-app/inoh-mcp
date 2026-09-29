@@ -15,9 +15,14 @@ export const countPausedCards = async (
 ): Promise<number> => {
   const query = supabase
     .from('user_cards')
-    .select('id', { count: 'exact', head: true })
+    .select('id, user_card_decks!inner(deck_id)', {
+      count: 'exact',
+      head: true,
+    })
     .eq('is_review_paused', true);
-  const { count, error } = await (deckId === undefined ? query : query.eq('deck_id', deckId));
+  const { count, error } = await (deckId === undefined
+    ? query
+    : query.eq('user_card_decks.deck_id', deckId));
 
   if (error) {
     throw new Error(`Could not count the user's paused cards: ${error.message}`);

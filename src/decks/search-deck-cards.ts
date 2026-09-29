@@ -52,7 +52,7 @@ const _fetchDeckCardsMatching = async (
     .limit(limit);
 
   if (deckId !== undefined) {
-    query = query.eq('deck_id', deckId);
+    query = query.eq('user_card_decks.deck_id', deckId);
   }
 
   const { data, error } = await query;

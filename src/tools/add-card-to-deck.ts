@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as z from 'zod/v4';
-import { getAuthenticatedUser, getUserAccessToken } from '../auth/index.js';
+import { getUserAccessToken } from '../auth/index.js';
 import { MAX_WORD_LENGTH } from '../constants.js';
 import {
   describeMissingDeck,
@@ -15,33 +15,29 @@ import { buildWordPageUrl } from '../web-app-urls.js';
 import { buildCardChoiceQuestion, requireOneCardSelector } from './card-selection.js';
 import { buildToolError } from './tool-result.js';
 
-const POSTGRES_UNIQUE_VIOLATION = '23505';
-
 /** Prefix the enforce_card_limit trigger puts on its rejections. */
 const CARD_LIMIT_ERROR_PREFIX = 'CARD_LIMIT:';
 
 /**
- * The deck this card already sits in, if any.
- *
- * Reason: user_cards is unique on (user_id, dictionary_id), so a card is in at
- * most one deck. Checking first turns a raw constraint violation into an answer
- * that names the deck.
+ * Whether this word is already a member of the selected deck.
  */
-const _findDeckHoldingCard = async (
+const _isCardInDeck = async (
   supabase: SupabaseClient,
   dictionaryId: string,
-): Promise<string | null> => {
+  deckId: string,
+): Promise<boolean> => {
   const { data, error } = await supabase
     .from('user_cards')
-    .select('deck_id')
+    .select('id, user_card_decks!inner(deck_id)')
     .eq('dictionary_id', dictionaryId)
+    .eq('user_card_decks.deck_id', deckId)
     .maybeSingle();
 
   if (error) {
     throw new Error(`Could not check the user's deck: ${error.message}`);
   }
 
-  return (data as { deck_id: string } | null)?.deck_id ?? null;
+  return data !== null;
 };
 
 const TOOL_TITLE = 'Add a card to a deck';
@@ -75,8 +71,7 @@ export const registerAddCardToDeckTool = (
         'when the dictionary does not have the word, since a public dictionary card is better ' +
         "than a generated duplicate. It also re-adds a card from the user's own private " +
         'dictionary that they had taken out of their deck. Adding costs nothing against the monthly private card allowance, though ' +
-        "each plan caps how many cards a deck can hold in total. A card's review progress " +
-        'starts fresh.',
+        'each plan counts each distinct word once. Review progress is shared across decks.',
       inputSchema: {
         word: z
           .string()
@@ -104,7 +99,6 @@ export const registerAddCardToDeckTool = (
         return buildToolError(selectorProblem);
       }
 
-      const user = getAuthenticatedUser(extra.authInfo);
       const supabase = createUserSupabaseClient(connection, getUserAccessToken(extra.authInfo));
 
       let card: DictionaryCard | null = null;
@@ -150,24 +144,13 @@ export const registerAddCardToDeckTool = (
         );
       }
 
-      const holdingDeckId = await _findDeckHoldingCard(supabase, card.id);
-      if (holdingDeckId !== null) {
-        const holdingDeck = decks.find((deck) => deck.id === holdingDeckId);
-        return buildToolError(
-          `"${card.word}" is already in ${
-            holdingDeck === undefined ? 'one of their decks' : `their "${holdingDeck.name}" deck`
-          }. A card can only be in one deck at a time; moving it between decks is done in the ` +
-            'Inoh app.',
-        );
+      if (await _isCardInDeck(supabase, card.id, targetDeck.id)) {
+        return buildToolError(`"${card.word}" is already in their "${targetDeck.name}" deck.`);
       }
 
-      // Reason: the FSRS columns are left to their database defaults, which are
-      // exactly what the app's createEmptyCard() produces and what
-      // approve_card_request has always relied on for generated cards.
-      const { error } = await supabase.from('user_cards').insert({
-        user_id: user.id,
-        dictionary_id: card.id,
-        deck_id: targetDeck.id,
+      const { error } = await supabase.rpc('add_words_to_deck', {
+        p_dictionary_ids: [card.id],
+        p_deck_id: targetDeck.id,
       });
 
       if (error) {
@@ -176,9 +159,6 @@ export const registerAddCardToDeckTool = (
         if (error.message.includes(CARD_LIMIT_ERROR_PREFIX)) {
           const [, limitExplanation] = error.message.split(CARD_LIMIT_ERROR_PREFIX);
           return buildToolError(limitExplanation?.trim() ?? error.message);
-        }
-        if (error.code === POSTGRES_UNIQUE_VIOLATION) {
-          return buildToolError(`"${card.word}" is already in the user's deck.`);
         }
         throw new Error(`Could not add the card: ${error.message}`);
       }
