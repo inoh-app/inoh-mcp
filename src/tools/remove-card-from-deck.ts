@@ -144,10 +144,10 @@ export const registerRemoveCardFromDeckTool = (
       if (matchingCards.length > 1) {
         const deckChoices = matchingCards.map((candidate) => {
           const deck = decks.find((item) => item.id === candidate.deckId);
-          return `${candidate.word} in ${deck?.name ?? 'a deck'}`;
+          return `"${candidate.word}" (cardId ${candidate.id}) in ${deck?.name ?? 'a deck'}`;
         });
         return buildToolError(
-          `Several matches remain: ${deckChoices.join(', ')}. ` + 'Specify cardId and deckName.',
+          `Several matches remain: ${deckChoices.join(', ')}. Specify cardId and deckName.`,
         );
       }
 
