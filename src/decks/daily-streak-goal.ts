@@ -19,10 +19,10 @@ export const fetchDailyStreakGoal = async (supabase: SupabaseClient): Promise<Da
 /** Describes progress without exposing the due backlog as a second goal. */
 export const describeDailyStreakGoal = (goal: DailyStreakGoal): string => {
   if (goal.status === 'earned') {
-    return (
-      `Today's streak goal is complete (${goal.goal_progress}/${goal.goal_target}). ` +
-      (goal.has_more_to_review ? 'Offer another review session if they want to continue.' : '')
-    );
+    const continueNote = goal.has_more_to_review
+      ? ' Offer another review session if they want to continue.'
+      : '';
+    return `Today's streak goal is complete (${goal.goal_progress}/${goal.goal_target}).${continueNote}`;
   }
   if (goal.status === 'protected') {
     return (
