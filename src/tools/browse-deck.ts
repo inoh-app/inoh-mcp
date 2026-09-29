@@ -144,22 +144,23 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
       const scope =
         chosenDeck === undefined ? 'any of their decks' : `their "${chosenDeck.name}" deck`;
 
+      const goalNote = dailyGoal ? ` ${describeDailyStreakGoal(dailyGoal)}` : '';
+
       if (results.length === 0) {
-        const goalNote = dailyGoal ? ` ${describeDailyStreakGoal(dailyGoal)}` : '';
         const otherDeckNote =
           selection === 'due' && chosenDeck !== undefined && dailyGoal?.has_more_to_review
             ? ' Omit deckName to review ready words from other decks.'
             : '';
-        const hasRandomWords =
-          selection === 'due' && !dailyGoal?.has_more_to_review
-            ? (
-                await browseDeckCards(supabase, {
-                  selection: 'random',
-                  count: 1,
-                  deckId: chosenDeck?.id,
-                })
-              ).cards.length > 0
-            : false;
+        const isReviewDayFinished = selection === 'due' && !dailyGoal?.has_more_to_review;
+        const hasRandomWords = isReviewDayFinished
+          ? (
+              await browseDeckCards(supabase, {
+                selection: 'random',
+                count: 1,
+                deckId: chosenDeck?.id,
+              })
+            ).cards.length > 0
+          : false;
         const practiceNote = hasRandomWords
           ? ' Use browse_deck with selection `random` for optional practice.'
           : '';
@@ -181,7 +182,6 @@ export const registerBrowseDeckTool = (server: McpServer, connection: SupabaseCo
           : results.length === count
             ? ' That is as many as they asked for; there may be more.'
             : '';
-      const goalNote = dailyGoal ? ` ${describeDailyStreakGoal(dailyGoal)}` : '';
 
       return {
         content: [

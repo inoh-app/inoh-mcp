@@ -27,16 +27,16 @@ const _selectDeckCards = (supabase: SupabaseClient, deckId: string | undefined) 
 export interface TodaysReviewSession {
   /** Cards due by the end of the user's day, most overdue first. */
   dueCards: DeckCard[];
-  /** Never-reviewed cards the session adds after the due ones. */
+  /** Never-reviewed cards the session deals before the due ones. */
   newCards: DeckCard[];
   /** Every eligible card due by the end of the day, including new cards. */
   dueTodayCount: number;
 }
 
 /**
- * The review session the app would put in front of the user right now: cards
- * due by the end of their day, most overdue first, then a few they have never
- * reviewed.
+ * The review session the app would put in front of the user right now: a few
+ * cards they have never reviewed, then cards due by the end of their day, most
+ * overdue first.
  *
  * Reason: "due today" rather than "due right now". FSRS schedules to the
  * minute, so a strict `now` filter trickles cards in through the day instead
