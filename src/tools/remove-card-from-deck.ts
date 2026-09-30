@@ -142,12 +142,14 @@ export const registerRemoveCardFromDeckTool = (
       }
 
       if (matchingCards.length > 1) {
-        const deckChoices = matchingCards.map((candidate) => {
-          const deck = decks.find((item) => item.id === candidate.deckId);
-          return `${candidate.word} in ${deck?.name ?? 'a deck'}`;
+        const placementChoices = matchingCards.map((candidate) => {
+          const placementDeck = decks.find((deck) => deck.id === candidate.deckId);
+          return `- cardId ${candidate.id} in "${placementDeck?.name ?? 'a deck'}": ${candidate.definition}`;
         });
         return buildToolError(
-          `Several matches remain: ${deckChoices.join(', ')}. ` + 'Specify cardId and deckName.',
+          `${describeCard} is in more than one place. Ask the user which meaning and deck they ` +
+            'mean, quoting the definitions and deck names rather than the ids, then call this ' +
+            `tool again with that cardId and deckName:\n${placementChoices.join('\n')}`,
         );
       }
 
