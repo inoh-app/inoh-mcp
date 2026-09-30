@@ -145,7 +145,7 @@ export const registerRemoveCardFromDeckTool = (
         const placementChoices = matchingCards.map((candidate) => {
           const placementDeck = decks.find((deck) => deck.id === candidate.deckId);
           const deckLabel =
-            placementDeck === undefined ? 'an unnamed deck' : `"${placementDeck.name}"`;
+            placementDeck === undefined ? 'an unknown deck' : `"${placementDeck.name}"`;
           return `- cardId ${candidate.id} in ${deckLabel}: ${candidate.definition}`;
         });
         return buildToolError(
