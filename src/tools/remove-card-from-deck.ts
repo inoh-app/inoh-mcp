@@ -144,7 +144,9 @@ export const registerRemoveCardFromDeckTool = (
       if (matchingCards.length > 1) {
         const placementChoices = matchingCards.map((candidate) => {
           const placementDeck = decks.find((deck) => deck.id === candidate.deckId);
-          return `- cardId ${candidate.id} in "${placementDeck?.name ?? 'a deck'}": ${candidate.definition}`;
+          const deckLabel =
+            placementDeck === undefined ? 'an unnamed deck' : `"${placementDeck.name}"`;
+          return `- cardId ${candidate.id} in ${deckLabel}: ${candidate.definition}`;
         });
         return buildToolError(
           `${describeCard} is in more than one place. Ask the user which meaning and deck they ` +
