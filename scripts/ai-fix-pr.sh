@@ -36,4 +36,3 @@ PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$GITHUB_REF_NAME" --he
   --title "Apply AI review fixes for ${GITHUB_SHA:0:12}" --body-file "$BODY_FILE")
 ./scripts/close-superseded-ai-fix-prs.sh
 echo "AI review opened fix PR: $PR_URL" | tee -a "$GITHUB_STEP_SUMMARY"
-exit 1

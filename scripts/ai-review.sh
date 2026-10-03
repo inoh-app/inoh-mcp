@@ -51,7 +51,7 @@ Focus on clear issues that formatting, lint, and type checks cannot catch:
 - Commented-out code
 - Boolean names that should begin with is, has, or can
 
-Only fix actionable issues grounded in changed lines. Edit only files listed in the diff. Keep edits small and preserve unrelated work. Do not create files. Do not run commands or use network tools. If there is nothing to fix, respond with exactly: LGTM. Otherwise, briefly describe each fix as FILE:LINE - explanation.
+Only fix actionable issues grounded in changed lines. Edit only files listed in the diff. Keep edits small and preserve unrelated work. Do not create files. Do not run commands or use network tools. If there is nothing to fix, start your reply with LGTM on its own line. Otherwise, briefly describe each fix as FILE:LINE - explanation.
 
 --- CLAUDE.MD ---
 PROMPT_END
@@ -87,8 +87,17 @@ for file in "${MODIFIED_FILES[@]}"; do
   fi
 done
 if (( ${#MODIFIED_FILES[@]} == 0 )); then
-  if [[ "$(cat "$REVIEW_FILE")" == "LGTM" ]]; then
-    echo "AI review passed" >> "$GITHUB_STEP_SUMMARY"
+  # Reason: the reviewer sometimes follows LGTM with a note on why the change is
+  # fine, on the same line or the next. With no edits made, LGTM as the whole
+  # first sentence is the verdict; "LGTM, but ..." is not, so it still fails.
+  FIRST_LINE=$(grep -m 1 -v '^[[:space:]]*$' "$REVIEW_FILE" || true)
+  LGTM_VERDICT_PATTERN='^[[:space:]]*LGTM(\.?[[:space:]]*$|\.[[:space:]])'
+  if [[ "$FIRST_LINE" =~ $LGTM_VERDICT_PATTERN ]]; then
+    {
+      echo "AI review passed"
+      echo
+      cat "$REVIEW_FILE"
+    } >> "$GITHUB_STEP_SUMMARY"
     exit 0
   fi
   echo "## AI review findings without a fix" >> "$GITHUB_STEP_SUMMARY"
