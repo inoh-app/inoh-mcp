@@ -18,7 +18,8 @@ const SERVER_VERSION = '0.0.1';
  */
 const SERVER_INSTRUCTIONS =
   'Inoh is a vocabulary app: people keep decks of word cards and review them.\n\n' +
-  'When asked to review, use browse_deck with selection `due` and start quizzing immediately. ' +
+  'When asked to review or go over their deck, use browse_deck with selection `due` and ' +
+  'start quizzing immediately. ' +
   'The request includes recording each answer; do not ask them to choose a review mode or ' +
   'confirm saving.\n\n' +
   'Never show an Inoh tool name to the user. When you offer them a next step, phrase it as ' +

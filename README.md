@@ -93,8 +93,8 @@ worst first. Reading your deck this way never touches a card's review schedule.
 
 ## Reviewing in a conversation
 
-Ask the AI to review or quiz you and it starts today's session without extra confirmation. It
-works through the session however suits the conversation: it
+Ask the AI to review, go over your deck or quiz you and it starts today's session without extra
+confirmation. It works through the session however suits the conversation: it
 might say a word and ask what it means, give you a meaning and ask for the word, or use it in a
 sentence. After each answer it judges how well you remembered it (you had it, you half had it, or
 you didn't) and `record_review` saves that straight away, so stopping halfway loses nothing.
