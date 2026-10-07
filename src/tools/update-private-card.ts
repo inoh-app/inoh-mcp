@@ -102,11 +102,11 @@ export const registerUpdatePrivateCardTool = (
         'unhelpful image. Inoh builds the card over again and writes it over the same card, ' +
         'so the card keeps its place in the deck and all of its review progress — unlike ' +
         "deleting and making a new one, which starts the user's memory of the word over. " +
-        'Regenerates the card’s content, including its illustration using Google Gemini 2.5 ' +
-        'Flash Image through Vertex AI and its word, definition, and example-sentence audio ' +
-        'using Google Cloud Text-to-Speech with Chirp 3 HD voices. The card remains private ' +
-        'to its owner within Inoh. Its media URLs are not publicly listed. ' +
-        'The original word, word audio, and phonetic spelling are retained on the updated card. ' +
+        'Regenerates the card’s illustration using Google Gemini 2.5 Flash Image through ' +
+        'Vertex AI, and its definition and example-sentence audio using Google Cloud ' +
+        'Text-to-Speech with Chirp 3 HD voices. The original word, word audio, phonetic ' +
+        'spelling, and review progress are retained. ' +
+        'The card is private to its owner within Inoh. Its media URLs are not publicly listed. ' +
         'The definition, example sentence, quiz distractors, illustration, and associated audio ' +
         'are regenerated together; no single part can be redone on its own. ' +
         'Give `context` to say which sense to teach; ' +
