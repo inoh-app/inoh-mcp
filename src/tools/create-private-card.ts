@@ -96,7 +96,11 @@ export const registerCreatePrivateCardTool = (
       description:
         'Creates a full Inoh flashcard for a word or phrase and adds it to the signed-in ' +
         "user's deck. The card goes into their private dictionary, which only they can see, " +
-        'never into the public Inoh dictionary. Inoh generates everything needed to quiz on it — definition, ' +
+        'never into the public Inoh dictionary. Inoh generates the card’s illustration using ' +
+        'Google Gemini 2.5 Flash Image through Vertex AI, and its word, definition, and ' +
+        'example-sentence audio using Google Cloud Text-to-Speech with Chirp 3 HD voices. ' +
+        'The card is private to its owner within Inoh. Its media URLs are not publicly listed. ' +
+        'Inoh generates everything needed to quiz on it — definition, ' +
         'example sentence, pronunciation audio, image, phonetic and quiz distractors — so ' +
         'this takes about a minute and finishes in the background. Call ' +
         'check_card_status to check on it. If the Inoh dictionary already has the ' +

@@ -12,7 +12,7 @@ const SERVER_VERSION = '0.0.1';
  * What every client model is told once, before it sees a single tool.
  *
  * Reason: tool names and mechanics are plumbing. A user who hears
- * "update_private_card", or which fields a redo rebuilds, has to translate it
+ * "update_private_card", or an internal field name, has to translate it
  * back into something they could have said, so the phrasing rule belongs here
  * rather than repeated in every tool description.
  */
@@ -26,9 +26,10 @@ const SERVER_INSTRUCTIONS =
   'something they could say back — "I can remake the enshittification card instead, which ' +
   'keeps your review progress" — not as the tool that would do it. The same goes for cardIds: ' +
   'when two cards share a word, ask which meaning they mean by quoting the definitions.\n\n' +
-  "Leave Inoh's inner workings out of the conversation too: parameter names, field names, " +
-  'and how a card gets put together. Tell the user what they get or lose — "it keeps your ' +
-  'review progress" — not how Inoh does it.\n\n' +
+  'Use plain language instead of parameter names or internal field names. Explain what ' +
+  'changes and what is preserved when remaking a card, including its review progress. ' +
+  'Do not conceal which content is regenerated, which providers process it, or the ' +
+  'media-access limitations described by the tools.\n\n' +
   "Every Inoh tool call except the account check and taking today's review session counts " +
   "against the user's weekly allowance of MCP tool calls, which resets on Monday. Call only what " +
   "the conversation needs: in a review, take today's session once and record each answer, " +

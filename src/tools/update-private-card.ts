@@ -101,11 +101,15 @@ export const registerUpdatePrivateCardTool = (
         'wrong: a definition that misses the sense they meant, a flat example sentence, an ' +
         'unhelpful image. Inoh builds the card over again and writes it over the same card, ' +
         'so the card keeps its place in the deck and all of its review progress — unlike ' +
-        "deleting and making a new one, which starts the user's memory of the word over. It " +
-        'is the whole card or nothing: everything except the word itself descends from the ' +
-        'word and the sense, so no single part of it can be redone on its own. That last ' +
-        'constraint is for you and not for the user: offer the redo, and leave out which ' +
-        'parts of the card get built again. Give `context` to say which sense to teach; ' +
+        "deleting and making a new one, which starts the user's memory of the word over. " +
+        'Regenerates the card’s content, including its illustration using Google Gemini 2.5 ' +
+        'Flash Image through Vertex AI and its word, definition, and example-sentence audio ' +
+        'using Google Cloud Text-to-Speech with Chirp 3 HD voices. The card remains private ' +
+        'to its owner within Inoh. Its media URLs are not publicly listed. ' +
+        'The original word, word audio, and phonetic spelling are retained on the updated card. ' +
+        'The definition, example sentence, quiz distractors, illustration, and associated audio ' +
+        'are regenerated together; no single part can be redone on its own. ' +
+        'Give `context` to say which sense to teach; ' +
         'without it the card is simply made again from the sense it already had. Identify the ' +
         'card by `word` or by `cardId`. This only works on cards the user made: a card from ' +
         'the shared Inoh dictionary belongs to everyone. To teach a different word, delete ' +
