@@ -123,7 +123,7 @@ allowance resets on Monday at midnight where you are.
 | Plan | Tool calls a week | About                                         |
 | ---- | ----------------- | --------------------------------------------- |
 | Free | 35                | 3 review sessions a week, with 5 calls spare  |
-| Plus | 150               | 15 review sessions a week (about two a day)   |
+| Plus | 100               | 10 review sessions a week                     |
 | Pro  | 500               | 50 review sessions a week (about seven a day) |
 
 Adding, searching and browsing use tool calls too. When only a few are left the AI mentions it, and

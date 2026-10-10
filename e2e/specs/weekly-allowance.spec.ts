@@ -13,7 +13,7 @@ import { startLocalServer, type RunningServer } from '../server.js';
 import { connectWithToken, signInWithEmailCode, textOf, type McpConnection } from '../session.js';
 
 /** Keep in sync with consume_mcp_tool_call. */
-const WEEKLY_TOOL_CALLS = { free: 35, plus: 150, pro: 500 } as const;
+const WEEKLY_TOOL_CALLS = { free: 35, plus: 100, pro: 500 } as const;
 /** Below this many calls left, every result mentions the allowance. */
 const LOW_ALLOWANCE_THRESHOLD = 5;
 
@@ -74,7 +74,7 @@ describe('the weekly allowance', () => {
     expect(textOf(refusal)).toContain('A tool call is one thing an AI assistant does in Inoh');
     expect(textOf(refusal)).toContain('They reset on Monday.');
     expect(textOf(refusal)).toContain('You can keep reviewing in the Inoh app in the meantime.');
-    expect(textOf(refusal)).toContain('Inoh Plus covers 15 review sessions with Claude a week');
+    expect(textOf(refusal)).toContain('Inoh Plus covers 10 review sessions with Claude a week');
     expect(textOf(refusal)).toContain('/subscription-plan');
 
     const accountCheck = await connection!.callTool('check_account', {});
@@ -88,6 +88,28 @@ describe('the weekly allowance', () => {
     const session = await connection!.callTool('browse_deck', { selection: 'due' });
     expect(session.isError).not.toBe(true);
     expect(textOf(session)).not.toContain('used up');
+  });
+
+  it('allows the 100th Plus call and refuses the next one', async () => {
+    await startWithSpentCalls('plus', WEEKLY_TOOL_CALLS.plus - 1);
+
+    const lastAllowedCall = await browseOneCard();
+    expect(lastAllowedCall.isError).not.toBe(true);
+    expect(textOf(lastAllowedCall)).toContain('only 0 MCP tool calls left this week');
+
+    const refusal = await browseOneCard();
+    expect(refusal.isError).toBe(true);
+    expect(textOf(refusal)).toContain(
+      `All ${WEEKLY_TOOL_CALLS.plus} MCP tool calls in this week's Plus plan allowance are used up.`,
+    );
+  });
+
+  it('refuses Plus usage already above the lowered allowance', async () => {
+    await startWithSpentCalls('plus', 120);
+
+    const refusal = await browseOneCard();
+    expect(refusal.isError).toBe(true);
+    expect(textOf(refusal)).toContain('Inoh Pro covers 50 review sessions with Claude a week');
   });
 
   it('points a spent Plus account at Pro', async () => {

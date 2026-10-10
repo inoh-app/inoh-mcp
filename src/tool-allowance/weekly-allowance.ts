@@ -51,7 +51,7 @@ const APP_FALLBACK = 'You can keep reviewing in the Inoh app in the meantime.';
  * go.
  */
 const NEXT_PLAN_PITCH: Record<string, string> = {
-  free: 'Inoh Plus covers 15 review sessions with Claude a week',
+  free: 'Inoh Plus covers 10 review sessions with Claude a week',
   plus: 'Inoh Pro covers 50 review sessions with Claude a week',
 };
 
