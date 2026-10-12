@@ -83,11 +83,23 @@ describe('the weekly allowance', () => {
   });
 
   it("deals today's session without spending a call, so a session costs only its answers", async () => {
-    await startWithSpentCalls('free', WEEKLY_TOOL_CALLS.free);
+    await startWithSpentCalls('free', WEEKLY_TOOL_CALLS.free - 1);
 
     const session = await connection!.callTool('browse_deck', { selection: 'due' });
     expect(session.isError).not.toBe(true);
-    expect(textOf(session)).not.toContain('used up');
+
+    const lastCall = await browseOneCard();
+    expect(lastCall.isError).not.toBe(true);
+  });
+
+  it("refuses today's session once spent, so no cards reach the assistant", async () => {
+    await startWithSpentCalls('free', WEEKLY_TOOL_CALLS.free);
+
+    const refusal = await connection!.callTool('browse_deck', { selection: 'due' });
+    expect(refusal.isError).toBe(true);
+    expect(textOf(refusal)).toContain(
+      `All ${WEEKLY_TOOL_CALLS.free} MCP tool calls in this week's Free plan allowance are used up.`,
+    );
   });
 
   it('allows the 100th Plus call and refuses the next one', async () => {

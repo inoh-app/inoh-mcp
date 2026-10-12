@@ -117,8 +117,9 @@ start another session if more words are ready.
 
 Your plan includes a weekly allowance of MCP tool calls. A tool call is one thing your AI assistant
 does in Inoh for you: recording one answer, adding or looking up a word. Taking today's session and
-checking which account you're signed in as are free, so a full session of 10 words uses 10. The
-allowance resets on Monday at midnight where you are.
+checking which account you're signed in as are free, so a full session of 10 words uses 10. Once
+the allowance is used up, today's session isn't dealt either. The allowance resets on Monday at
+midnight where you are.
 
 | Plan | Tool calls a week | About                                         |
 | ---- | ----------------- | --------------------------------------------- |

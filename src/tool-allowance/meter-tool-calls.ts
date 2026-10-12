@@ -12,6 +12,7 @@ import {
   consumeWeeklyToolCall,
   describeLowWeeklyAllowance,
   describeSpentAllowance,
+  peekWeeklyToolCallAllowance,
 } from './weekly-allowance.js';
 
 type ToolCallExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
@@ -26,7 +27,8 @@ type AnyToolCallback = (...handlerArgs: unknown[]) => CallToolResult | Promise<C
 const UNMETERED_TOOL_NAMES = new Set(['check_account']);
 
 /**
- * Whether a call deals today's review session, which is free too.
+ * Whether a call deals today's review session, which is free too while the
+ * allowance lasts.
  *
  * Reason: the allowance is sold in 10-word sessions, so a session should cost
  * exactly its 10 recorded answers. Dealing it again only returns the same
@@ -75,14 +77,21 @@ export const meterToolCalls = (server: McpServer, connection: SupabaseConnection
 const _meter =
   (toolName: string, callback: AnyToolCallback, connection: SupabaseConnection): AnyToolCallback =>
   async (...handlerArgs) => {
-    if (_isTodaysSessionCall(toolName, handlerArgs[0])) {
-      return callback(...handlerArgs);
-    }
-
     // Reason: the SDK passes (args, extra) to a tool with inputs and (extra)
     // to one without, so extra is always last.
     const extra = handlerArgs.at(-1) as ToolCallExtra;
     const supabase = createUserSupabaseClient(connection, getUserAccessToken(extra.authInfo));
+
+    if (_isTodaysSessionCall(toolName, handlerArgs[0])) {
+      // Reason: free must not mean unchecked. Once dealt, the cards sit in the
+      // assistant's context and it can quiz from them with no further calls,
+      // so a spent account gets the refusal instead of the session.
+      const allowance = await peekWeeklyToolCallAllowance(supabase);
+      return allowance.isAllowed
+        ? callback(...handlerArgs)
+        : buildToolError(describeSpentAllowance(allowance));
+    }
+
     const allowance = await consumeWeeklyToolCall(supabase);
 
     if (!allowance.isAllowed) {

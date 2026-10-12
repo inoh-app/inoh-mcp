@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PLANS_URL } from '../web-app-urls.js';
 
 export interface WeeklyToolCallAllowance {
-  /** Whether this call was counted and may run. */
+  /** Whether the call may run. */
   isAllowed: boolean;
   /** The plan the allowance came from: free, plus or pro. */
   plan: string;
@@ -10,8 +10,8 @@ export interface WeeklyToolCallAllowance {
   remaining: number;
 }
 
-/** Shape `consume_mcp_tool_call` returns. */
-interface ConsumedToolCallRow {
+/** Shape `consume_mcp_tool_call` and `peek_mcp_tool_call_allowance` return. */
+interface AllowanceRow {
   allowed: boolean;
   plan: string;
   weekly_limit: number;
@@ -56,7 +56,8 @@ const NEXT_PLAN_PITCH: Record<string, string> = {
 };
 
 /**
- * Counts one tool call against the signed-in user's weekly allowance.
+ * Asks the database for the signed-in user's allowance through one of its two
+ * allowance functions, which share a return shape.
  *
  * Reason: the database does the counting, the refusing and the week, so the
  * plan ladder and the Monday reset exist in one place. When the counter cannot
@@ -64,12 +65,14 @@ const NEXT_PLAN_PITCH: Record<string, string> = {
  * security one, and a broken counter must not take every tool down with it.
  *
  * @param supabase - Client acting as the signed-in user
+ * @param functionName - Which allowance function to call
  * @returns Whether the call may run, and what is left
  */
-export const consumeWeeklyToolCall = async (
+const _fetchWeeklyAllowance = async (
   supabase: SupabaseClient,
+  functionName: 'consume_mcp_tool_call' | 'peek_mcp_tool_call_allowance',
 ): Promise<WeeklyToolCallAllowance> => {
-  const { data, error } = await supabase.rpc('consume_mcp_tool_call').maybeSingle();
+  const { data, error } = await supabase.rpc(functionName).maybeSingle();
 
   if (error || data === null) {
     return {
@@ -80,7 +83,7 @@ export const consumeWeeklyToolCall = async (
     };
   }
 
-  const row = data as ConsumedToolCallRow;
+  const row = data as AllowanceRow;
   return {
     isAllowed: row.allowed,
     plan: row.plan,
@@ -88,6 +91,26 @@ export const consumeWeeklyToolCall = async (
     remaining: row.remaining,
   };
 };
+
+/**
+ * Counts one tool call against the signed-in user's weekly allowance.
+ *
+ * @param supabase - Client acting as the signed-in user
+ * @returns Whether the call was counted and may run, and what is left
+ */
+export const consumeWeeklyToolCall = (supabase: SupabaseClient): Promise<WeeklyToolCallAllowance> =>
+  _fetchWeeklyAllowance(supabase, 'consume_mcp_tool_call');
+
+/**
+ * Checks the signed-in user's weekly allowance without counting a call.
+ *
+ * @param supabase - Client acting as the signed-in user
+ * @returns Whether a call may run now, and what is left
+ */
+export const peekWeeklyToolCallAllowance = (
+  supabase: SupabaseClient,
+): Promise<WeeklyToolCallAllowance> =>
+  _fetchWeeklyAllowance(supabase, 'peek_mcp_tool_call_allowance');
 
 /**
  * The reply when this week's allowance is spent.
