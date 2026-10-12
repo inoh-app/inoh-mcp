@@ -1,5 +1,5 @@
 import type { PostgrestError } from '@supabase/supabase-js';
-import { PLANS_URL } from '../web-app-urls.js';
+import { UPGRADE_DIRECTIONS } from '../web-app-urls.js';
 
 /**
  * Sense hint stored when the caller does not give one.
@@ -61,10 +61,10 @@ export const describeCardRequestInsertError = (
   if (error.message.includes(QUOTA_ERROR_PREFIX)) {
     const refusal = _readMessageAfterPrefix(error.message, QUOTA_ERROR_PREFIX);
 
-    // Reason: the refusal says to upgrade but not where, and a tool result is
-    // the prompt for whatever the client says next — without the link the
-    // assistant either invents one or sends the user hunting for it.
-    return refusal.includes(UPGRADE_OFFER_MARKER) ? `${refusal} Upgrade at ${PLANS_URL}.` : refusal;
+    // Reason: the refusal says to upgrade but not how, and a tool result is
+    // the prompt for whatever the client says next — without the directions
+    // the assistant either invents some or sends the user hunting for them.
+    return refusal.includes(UPGRADE_OFFER_MARKER) ? `${refusal} ${UPGRADE_DIRECTIONS}` : refusal;
   }
 
   if (error.message.includes(DAILY_CEILING_ERROR_PREFIX)) {

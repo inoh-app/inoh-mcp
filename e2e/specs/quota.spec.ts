@@ -96,8 +96,9 @@ describe('the free plan allowance', () => {
     expect(textOf(refusal)).toContain(
       'your Free plan makes 50 private cards a month and you have used them all',
     );
-    expect(textOf(refusal)).toContain('Upgrade at ');
-    expect(textOf(refusal)).toContain('/subscription-plan');
+    expect(textOf(refusal)).toContain(
+      'sign in at inoh.app in a web browser with this same account, open Settings.',
+    );
 
     const suggestion = await connection!.callTool('request_public_card', {
       word: 'quota public word',

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PLANS_URL } from '../web-app-urls.js';
+import { UPGRADE_DIRECTIONS } from '../web-app-urls.js';
 
 export interface WeeklyToolCallAllowance {
   /** Whether the call may run. */
@@ -116,7 +116,7 @@ export const peekWeeklyToolCallAllowance = (
  * The reply when this week's allowance is spent.
  *
  * @param allowance - The refused call's allowance
- * @returns A message written for the user, with where to upgrade when there is
+ * @returns A message written for the user, with how to upgrade when there is
  *   a plan above theirs
  */
 export const describeSpentAllowance = (allowance: WeeklyToolCallAllowance): string => {
@@ -125,7 +125,7 @@ export const describeSpentAllowance = (allowance: WeeklyToolCallAllowance): stri
     `All ${allowance.weeklyLimit} MCP tool calls in this week's ${planName} plan allowance are ` +
     `used up. ${TOOL_CALL_EXPLANATION} They reset on Monday. ${APP_FALLBACK}`;
   const pitch = NEXT_PLAN_PITCH[allowance.plan];
-  return pitch === undefined ? spent : `${spent} ${pitch}. Upgrade at ${PLANS_URL}`;
+  return pitch === undefined ? spent : `${spent} ${pitch}. ${UPGRADE_DIRECTIONS}`;
 };
 
 /**
