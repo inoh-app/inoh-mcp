@@ -20,5 +20,4 @@ export const MY_REQUESTS_URL = `${INOH_WEB_APP_URL}/my-requests`;
  * Reason: the iOS app has no plans screen (App Store rule 3.1.1, PRI-21314),
  * so upgrading only works in a browser, signed in to the same account.
  */
-export const UPGRADE_DIRECTIONS =
-  'To upgrade, sign in at inoh.app in a web browser with this same account, open Settings.';
+export const UPGRADE_DIRECTIONS = `To upgrade, sign in at ${INOH_WEB_APP_URL} in a web browser with this same account and open Settings.`;

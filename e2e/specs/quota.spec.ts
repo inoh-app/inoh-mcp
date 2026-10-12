@@ -97,7 +97,7 @@ describe('the free plan allowance', () => {
       'your Free plan makes 50 private cards a month and you have used them all',
     );
     expect(textOf(refusal)).toContain(
-      'sign in at inoh.app in a web browser with this same account, open Settings.',
+      'sign in at https://app.inoh.app in a web browser with this same account and open Settings.',
     );
 
     const suggestion = await connection!.callTool('request_public_card', {
