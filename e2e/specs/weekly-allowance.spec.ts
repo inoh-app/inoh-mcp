@@ -76,7 +76,7 @@ describe('the weekly allowance', () => {
     expect(textOf(refusal)).toContain('You can keep reviewing in the Inoh app in the meantime.');
     expect(textOf(refusal)).toContain('Inoh Plus covers 10 review sessions with Claude a week');
     expect(textOf(refusal)).toContain(
-      'sign in at inoh.app in a web browser with this same account, open Settings.',
+      'sign in at https://app.inoh.app in a web browser with this same account and open Settings.',
     );
 
     const accountCheck = await connection!.callTool('check_account', {});
