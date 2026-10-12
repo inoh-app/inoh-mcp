@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SupabaseConnection } from './supabase/index.js';
 import { meterToolCalls } from './tool-allowance/index.js';
+import { recordToolCalls } from './analytics/index.js';
 import { registerAllTools } from './tools/index.js';
 
 const SERVER_NAME = 'inoh-mcp';
@@ -50,6 +51,7 @@ export const createInohMcpServer = (connection: SupabaseConnection): McpServer =
     { instructions: SERVER_INSTRUCTIONS },
   );
   meterToolCalls(server, connection);
+  recordToolCalls(server, connection);
   registerAllTools(server, connection);
   return server;
 };
